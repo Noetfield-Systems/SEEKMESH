@@ -1,0 +1,16 @@
+# Copy to wrangler.toml, set your real deployed origin URL.
+# Cloudflare Workers Free allows only 5 cron triggers per account and
+# 100,000 requests/day (current docs Nov 2026). Not 2,048 running processes.
+name = "seekmesh-discovery-edge"
+main = "cloudflare-discovery-worker.js"
+compatibility_date = "2026-11-01"
+
+[vars]
+SEEKMESH_ORIGIN_URL = "https://YOUR-REAL-SEEKMESH-DEPLOYMENT.up.railway.app"
+
+[triggers]
+crons = ["*/5 * * * *"]
+
+# REQUIRED: set secrets without writing to the repo:
+# npx wrangler secret put SEEKMESH_WORKER_KEY
+# npx wrangler secret put SEEKMESH_CRON_KEY
