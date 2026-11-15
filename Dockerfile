@@ -3,6 +3,7 @@ WORKDIR /app
 RUN apk add --no-cache su-exec
 COPY package.json server.js ./
 COPY autonomy ./autonomy
+COPY economy ./economy
 COPY public ./public
 RUN mkdir -p /data && chown -R node:node /app /data
 ENV NODE_ENV=production DATA_DIR=/data PORT=3000
