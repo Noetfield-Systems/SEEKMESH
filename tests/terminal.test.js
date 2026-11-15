@@ -42,3 +42,12 @@ test('No invented financial token or fake leaderboards',()=>{
  assert.match(backend,/mesh_spotlights/);
  assert.match(content('server.js'),/mesh\.approved\(id\)/);
 });
+
+test('Partner route and deep-link entrypoints are available',()=>{
+ const server=content('server.js'),js=content('public/terminal.js');
+ assert.match(server,/'\/partners':'terminal.html'/);
+ assert.match(js,/'\/partners':'partners'/);
+ assert.match(js,/action==='join'/);
+ assert.match(js,/action==='submit'/);
+ assert.match(js,/state\.pendingAction='submit'/);
+});

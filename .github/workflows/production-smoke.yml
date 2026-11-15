@@ -13,13 +13,28 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Verify live health, searchable index and autonomous coordinator
+      - name: Verify production Web3 terminal, economy and autonomous coordinator
         env:
           BASE: https://seekmesh-web-production.up.railway.app
         run: |
           set -euo pipefail
-          curl -fSs --retry 3 --retry-delay 3 --max-time 15 "$BASE/api/health" | jq -e '.status=="ok" and .database=="sqlite"' 
-          curl -fSs --retry 3 --retry-delay 3 --max-time 15 "$BASE/api/stats" | jq -e '.resources>=16 and .foundingMembers>=0'
-          curl -fSs --retry 3 --retry-delay 3 --max-time 15 "$BASE/api/autonomy/status" | jq -e '.enabled==true and .logicalShardsNotProcesses==true and .physicalExecutorLimit>=1'
-          curl -fSs --retry 3 --retry-delay 3 --max-time 15 "$BASE/api/resources?q=Hugging" | jq -e '.resources|length>=1'
-          echo 'SEEKMESH LIVE SMOKE PASS'
+          # Allow Railway to settle after a GitHub push. No account mutation.
+          for n in $(seq 1 18); do
+            if curl -fSs --max-time 12 "$BASE/api/health" | jq -e '.status=="ok" and .database=="sqlite" and .version=="0.5.0"' >/dev/null; then
+              break
+            fi
+            sleep 7
+          done
+          curl -fSs --max-time 20 "$BASE/api/health" | jq -e '.status=="ok" and .version=="0.5.0"'
+          curl -fSs --max-time 20 "$BASE/" | grep -q 'id="view-missions"'
+          curl -fSs --max-time 20 "$BASE/rewards" | grep -q 'id="redeem-submission"'
+          curl -fSs --max-time 20 "$BASE/partners" | grep -q 'id="view-partners"'
+          curl -fSs --max-time 20 "$BASE/terminal.js" | grep -q "/api/mesh/"
+          curl -fSs --max-time 20 "$BASE/api/stats" | jq -e '.resources>=16'
+          curl -fSs --max-time 20 "$BASE/api/mesh/stats" | jq -e '.nodes>=0 and .completedActions>=0 and .creditsSpent>=0 and .tokenIssued==false'
+          curl -fSs --max-time 20 "$BASE/api/mesh/leaderboard" | jq -e '.members|type=="array"'
+          curl -fSs --max-time 20 "$BASE/api/mesh/quests" | jq -e '.quests|length==5'
+          curl -fSs --max-time 20 "$BASE/api/mesh/spotlights" | jq -e '.spotlights|type=="array"'
+          curl -fSs --max-time 20 "$BASE/api/autonomy/status" | jq -e '.enabled==true and .logicalShardsNotProcesses==true and .physicalExecutorLimit>=1'
+          curl -fSs --max-time 20 "$BASE/api/resources?q=Hugging" | jq -e '.resources|length>=1'
+          echo 'SEEKMESH WEB3 DISCOVERY ECONOMY LIVE SMOKE PASS'
