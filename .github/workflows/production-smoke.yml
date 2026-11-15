@@ -1,0 +1,25 @@
+name: SEEKMESH production smoke
+on:
+  push:
+    paths:
+      - '.github/workflows/production-smoke.yml'
+  workflow_dispatch:
+  schedule:
+    - cron: '17 */6 * * *'
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify live health, searchable index and autonomous coordinator
+        env:
+          BASE: https://seekmesh-web-production.up.railway.app
+        run: |
+          set -euo pipefail
+          curl -fSs --retry 3 --retry-delay 3 --max-time 15 "$BASE/api/health" | jq -e '.status=="ok" and .database=="sqlite"' 
+          curl -fSs --retry 3 --retry-delay 3 --max-time 15 "$BASE/api/stats" | jq -e '.resources>=16 and .foundingMembers>=0'
+          curl -fSs --retry 3 --retry-delay 3 --max-time 15 "$BASE/api/autonomy/status" | jq -e '.enabled==true and .logicalShardsNotProcesses==true and .physicalExecutorLimit>=1'
+          curl -fSs --retry 3 --retry-delay 3 --max-time 15 "$BASE/api/resources?q=Hugging" | jq -e '.resources|length>=1'
+          echo 'SEEKMESH LIVE SMOKE PASS'
