@@ -1,0 +1,35 @@
+name: Materialize SEEKMESH source
+on:
+  push:
+    paths:
+      - 'source/seekmesh-v0.3.b64'
+      - '.github/workflows/materialize.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Restore complete source from versioned Brotli payload
+        shell: bash
+        run: |
+          set -euo pipefail
+          base64 -d source/seekmesh-v0.3.b64 > /tmp/seekmesh.tar.br
+          node -e "const fs=require('node:fs'),z=require('node:zlib');fs.writeFileSync('/tmp/seekmesh.tar',z.brotliDecompressSync(fs.readFileSync('/tmp/seekmesh.tar.br')))"
+          tar -tf /tmp/seekmesh.tar | grep -Ev '^(/|[[:space:]]|\.\./)' > /tmp/seekmesh-files.txt
+          tar -xf /tmp/seekmesh.tar -C .
+          npm test
+          git add README.md package.json server.js autonomy/ public/ integrations/ tests/ Dockerfile railway.json .gitignore .dockerignore .env.example
+          if ! git diff --cached --quiet; then
+            git config user.name 'seekmesh-source-bot'
+            git config user.email 'seekmesh-source-bot@users.noreply.github.com'
+            git commit -m "feat: materialize tested SEEKMESH Autonomy OS v0.3 full source"
+            git push
+          fi
