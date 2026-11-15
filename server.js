@@ -7,6 +7,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { AutonomyEngine } from './autonomy/engine.js';
 import { MeshEconomy } from './economy/core.js';
 import { CommunityLayer } from './community/engine.js';
+import { WalletLink } from './wallet/link.js';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC = path.join(ROOT, 'public');
@@ -71,6 +72,7 @@ for (const item of starter) insertStarter.run(...item, 'editorial');
 const autonomy=new AutonomyEngine(db);
 const mesh=new MeshEconomy(db);
 const community=new CommunityLayer(db);
+const wallet=new WalletLink(db,SITE_URL);
 
 const categories = ['All','AI & Models','Agent Infrastructure','Protocols','Communities','Builders','Search & Data'];
 const quests = [
@@ -124,7 +126,7 @@ export const server=http.createServer(async(req,res)=>{
     if(p==='/api/mesh/stats')return j(res,200,mesh.stats());
     if(p==='/api/mesh/leaderboard')return j(res,200,{members:mesh.leaderboard()});
     if(p==='/api/mesh/spotlights')return j(res,200,{spotlights:mesh.spotlights()});
-    if(p==='/api/mesh/me'){const m=mesh.auth(req.headers.authorization);return j(res,m?200:401,m?{member:m}:{error:'Sign in first.'});}
+    if(p==='/api/mesh/me'){const m=mesh.auth(req.headers.authorization);return j(res,m?200:401,m?{member:{...m,walletAddress:wallet.addressFor(m.id)}}:{error:'Sign in first.'});}
     if(p==='/api/mesh/quests')return j(res,200,{season:{name:'Season Zero',starts:'2026-11-15',ends:'2026-12-15'},quests:[
       {id:'join',name:'Activate your node',xp:25,credits:5,type:'once'},
       {id:'daily',name:'Daily discovery pulse',xp:4,credits:2,type:'daily'},
@@ -151,7 +153,7 @@ export const server=http.createServer(async(req,res)=>{
     if(safePublicFile(p,res))return;return j(res,404,{error:'Not found'});
   }
   if(req.method!=='POST')return j(res,405,{error:'Method not allowed'});
-  if(!['/api/join','/api/submit','/api/privacy-request','/api/admin/review','/api/admin/autonomy/control','/api/admin/autonomy/source','/api/admin/autonomy/candidate','/api/mesh/register','/api/mesh/login','/api/mesh/logout','/api/mesh/checkin','/api/mesh/orientation','/api/mesh/submit','/api/mesh/redeem','/api/mesh/sponsor','/api/guilds/create','/api/guilds/join','/api/guilds/leave','/api/guilds/post','/api/guilds/report','/api/admin/guild-post','/api/admin/source-report','/api/mesh/source-report','/api/telemetry','/api/internal/autonomy/tick','/api/internal/autonomy/claim','/api/internal/autonomy/report'].includes(p))return j(res,404,{error:'Not found'});
+  if(!['/api/join','/api/submit','/api/privacy-request','/api/admin/review','/api/admin/autonomy/control','/api/admin/autonomy/source','/api/admin/autonomy/candidate','/api/mesh/register','/api/mesh/login','/api/mesh/logout','/api/mesh/checkin','/api/mesh/orientation','/api/mesh/submit','/api/mesh/redeem','/api/mesh/sponsor','/api/guilds/create','/api/guilds/join','/api/guilds/leave','/api/guilds/post','/api/guilds/report','/api/admin/guild-post','/api/admin/source-report','/api/mesh/source-report','/api/mesh/wallet-challenge','/api/mesh/wallet-verify','/api/mesh/wallet-unlink','/api/telemetry','/api/internal/autonomy/tick','/api/internal/autonomy/claim','/api/internal/autonomy/report'].includes(p))return j(res,404,{error:'Not found'});
   if(p.startsWith('/api/admin/')&&!authenticate(req))return j(res,401,{error:'Unauthorized'});
   if(p==='/api/internal/autonomy/tick'&&!cronAuthenticate(req))return j(res,401,{error:'Unauthorized'});
   if(['/api/internal/autonomy/claim','/api/internal/autonomy/report'].includes(p)&&!workerAuthenticate(req))return j(res,401,{error:'Unauthorized'});
@@ -192,6 +194,15 @@ export const server=http.createServer(async(req,res)=>{
     if(p==='/api/mesh/sponsor'){if(limited(req,'mesh-sponsor',3))return j(res,429,{error:'Too many inquiries.'});const out=mesh.sponsor(b);return j(res,out.error?422:201,out);}
     if(p.startsWith('/api/mesh/')){
       const member=mesh.auth(req.headers.authorization);if(!member)return j(res,401,{error:'Sign in to complete this action.'});
+      if(p==='/api/mesh/wallet-challenge'){
+        const r=wallet.challenge(member,b.address);return j(res,r.error?422:201,r);
+      }
+      if(p==='/api/mesh/wallet-verify'){
+        const r=wallet.verify(member,b.challengeId,b.signature);return j(res,r.error?409:200,r);
+      }
+      if(p==='/api/mesh/wallet-unlink'){
+        const r=wallet.unlink(member,b.password);return j(res,r.error?422:200,r);
+      }
       if(p==='/api/mesh/logout')return j(res,200,mesh.logout(req.headers.authorization));
       if(p==='/api/mesh/checkin'){const out=mesh.checkin(member.id);return j(res,out.error?409:200,out);}
       if(p==='/api/mesh/orientation'){const out=mesh.orientation(member.id,b.answer);return j(res,out.error?409:200,out);}

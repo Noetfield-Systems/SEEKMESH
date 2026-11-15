@@ -4,6 +4,7 @@ import {spawn} from 'node:child_process';
 import os from 'node:os';
 import fs from 'node:fs';
 import path from 'node:path';
+import { Wallet } from 'ethers';
 
 const temp=fs.mkdtempSync(path.join(os.tmpdir(),'seekmesh-test-'));
 const port=34211+Math.floor(Math.random()*2000);
@@ -92,6 +93,25 @@ test('E2E: starts, live data, search, invite, review, reputation, security and p
    assert.equal(reports.status,200);assert.equal(reports.body.reports.length,1);
    assert.equal((await request('/api/admin/source-report','POST',{reportId:reports.body.reports[0].id,decision:'resolved'},{'x-admin-key':'test-admin-secret'})).status,200);
    assert.equal((await request('/api/admin/launch','GET',null,{'x-admin-key':'test-admin-secret'})).body.openSourceReports,0);
+ });
+ await t.test('Signed wallet linking: one-time challenge, EIP-191 recovery, replay rejection and password-protected unlink',async()=>{
+   const auth=await request('/api/mesh/login','POST',{handle:'GuildFounder',password:'twelve-or-more-characters!'});
+   assert.equal(auth.status,200);const memberHeader={authorization:'Bearer '+auth.body.token};
+   const signer=Wallet.createRandom(),impostor=Wallet.createRandom();
+   assert.equal((await request('/api/mesh/wallet-challenge','POST',{address:signer.address})).status,401);
+   const issue=await request('/api/mesh/wallet-challenge','POST',{address:signer.address},memberHeader);
+   assert.equal(issue.status,201);assert.match(issue.body.message,/SEEKMESH/);
+   assert.match(issue.body.message,/does not authorize payments/);
+   const wrong=await impostor.signMessage(issue.body.message);
+   assert.equal((await request('/api/mesh/wallet-verify','POST',{challengeId:issue.body.challengeId,signature:wrong},memberHeader)).status,409);
+   const signature=await signer.signMessage(issue.body.message);
+   const linked=await request('/api/mesh/wallet-verify','POST',{challengeId:issue.body.challengeId,signature},memberHeader);
+   assert.equal(linked.status,200);assert.equal(linked.body.address,signer.address);assert.equal(linked.body.walletAuthentication,false);
+   assert.equal((await request('/api/mesh/me','GET',null,memberHeader)).body.member.walletAddress,signer.address);
+   assert.equal((await request('/api/mesh/wallet-verify','POST',{challengeId:issue.body.challengeId,signature},memberHeader)).status,409);
+   assert.equal((await request('/api/mesh/wallet-unlink','POST',{password:'wrong-password'},memberHeader)).status,422);
+   assert.equal((await request('/api/mesh/wallet-unlink','POST',{password:'twelve-or-more-characters!'},memberHeader)).status,200);
+   assert.equal((await request('/api/mesh/me','GET',null,memberHeader)).body.member.walletAddress,null);
  });
  await t.test('Public machine-readable discovery and web page',async()=>{const agent=await request('/api/agent.json');assert.equal(agent.status,200);assert.match(agent.body.api.search,/api\/resources/);const page=await fetch(base+'/');assert.equal(page.status,200);const html=await page.text();assert.match(html,/SEEKMESH/);const css=await fetch(base+'/styles.css');assert.equal(css.status,200);const operator=await fetch(base+'/operator');assert.equal(operator.status,200);assert.match(await operator.text(),/Operator Console/);const opjs=await fetch(base+'/operator.js');assert.equal(opjs.status,200);const robots=await fetch(base+'/robots.txt');assert.equal(robots.status,200);});
 });
