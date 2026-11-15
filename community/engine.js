@@ -18,6 +18,11 @@ export class CommunityLayer {
     CREATE INDEX IF NOT EXISTS realm_guild_posts_by_guild ON realm_guild_posts(guild_id,created_at);
     CREATE TABLE IF NOT EXISTS realm_guild_reports(post_id INTEGER NOT NULL,reporter_id INTEGER NOT NULL,
     reason TEXT NOT NULL,created_at TEXT NOT NULL DEFAULT(datetime('now')),PRIMARY KEY(post_id,reporter_id));
+    CREATE TABLE IF NOT EXISTS realm_source_reports(id INTEGER PRIMARY KEY AUTOINCREMENT,
+    resource_id INTEGER NOT NULL,member_id INTEGER NOT NULL,reason TEXT NOT NULL,detail TEXT NOT NULL DEFAULT '',
+    state TEXT NOT NULL DEFAULT 'open',created_at TEXT NOT NULL DEFAULT(datetime('now')),
+    UNIQUE(resource_id,member_id,reason));
+    CREATE INDEX IF NOT EXISTS realm_source_reports_state ON realm_source_reports(state);
     CREATE TABLE IF NOT EXISTS realm_event_counts(day TEXT NOT NULL,event TEXT NOT NULL,target TEXT NOT NULL DEFAULT '',
     count INTEGER NOT NULL DEFAULT 0,PRIMARY KEY(day,event,target));`);}
   list(memberId=null){
@@ -107,6 +112,25 @@ export class CommunityLayer {
       WHERE e.event='source_click' AND e.day>=date('now',?) GROUP BY r.id ORDER BY clicks DESC LIMIT 12`).all('-'+(n-1)+' days');
     return {days:n,totals,daily:rows,mostClickedSources:projects,measurement:'aggregate events, not unique users, authenticated humans, conversions, or revenue'};
   }
+
+  reportSource(member,resourceId,reason,detail=''){
+    const id=Number(resourceId),why=clean(reason,35),note=clean(detail,240);
+    if(!Number.isSafeInteger(id)||id<=0||!['broken-link','misleading','suspicious','duplicate','outdated'].includes(why))return {error:'Select a valid resource and report reason.'};
+    const source=this.db.prepare('SELECT id,name FROM resources WHERE id=?').get(id);
+    if(!source)return {error:'Resource not found.'};
+    const r=this.db.prepare('INSERT OR IGNORE INTO realm_source_reports(resource_id,member_id,reason,detail) VALUES(?,?,?,?)').run(id,member.id,why,note);
+    return {ok:true,reportRecorded:r.changes===1,resourceId:id,review:'queued'};
+  }
+  sourceReports(){
+    return this.db.prepare(`SELECT a.id,a.reason,a.detail,a.state,a.created_at,r.name resource,r.url,m.handle reporter
+      FROM realm_source_reports a JOIN resources r ON r.id=a.resource_id JOIN mesh_members m ON m.id=a.member_id
+      ORDER BY CASE a.state WHEN 'open' THEN 0 ELSE 1 END,a.id DESC LIMIT 180`).all();
+  }
+  reviewSourceReport(reportId,decision){
+    if(!['resolved','dismissed'].includes(decision))return {error:'Invalid review decision.'};
+    const r=this.db.prepare("UPDATE realm_source_reports SET state=? WHERE id=? AND state='open'").run(decision,Number(reportId));
+    return r.changes?{ok:true,id:Number(reportId),state:decision}:{error:'Report missing or already reviewed.'};
+  }
   launchReport(){
     return {guilds:this.db.prepare('SELECT COUNT(*) n FROM realm_guilds').get().n,
       guildMemberships:this.db.prepare('SELECT COUNT(*) n FROM realm_guild_members').get().n,
@@ -115,6 +139,7 @@ export class CommunityLayer {
       pendingSources:this.db.prepare("SELECT COUNT(*) n FROM submissions WHERE state='pending'").get().n,
       approvedSources:this.db.prepare("SELECT COUNT(*) n FROM submissions WHERE state='approved'").get().n,
       sponsorInquiries:this.db.prepare('SELECT COUNT(*) n FROM mesh_sponsors').get().n,
+      openSourceReports:this.db.prepare("SELECT COUNT(*) n FROM realm_source_reports WHERE state='open'").get().n,
       sevenDay:this.metrics(7),paymentsCollected:null,
       paymentsNote:'Payments are not captured or verified by the current application.'};
   }

@@ -91,7 +91,7 @@ function referralCode(){return crypto.randomBytes(6).toString('hex').toUpperCase
 function workerAuthenticate(req){const k=process.env.AUTONOMY_WORKER_KEY;if(!k||typeof req.headers['x-worker-key']!=='string')return false;const a=Buffer.from(k),b=Buffer.from(req.headers['x-worker-key']);return a.length===b.length&&crypto.timingSafeEqual(a,b);}
 function cronAuthenticate(req){const k=process.env.AUTONOMY_CRON_KEY;if(!k||typeof req.headers['x-cron-key']!=='string')return false;const a=Buffer.from(k),b=Buffer.from(req.headers['x-cron-key']);return a.length===b.length&&crypto.timingSafeEqual(a,b);}
 function authenticate(req){if(!ADMIN_KEY || typeof req.headers['x-admin-key']!=='string')return false;const expected=Buffer.from(ADMIN_KEY),actual=Buffer.from(req.headers['x-admin-key']);return expected.length===actual.length && crypto.timingSafeEqual(expected,actual);}
-function searchResources(q, category){let sql='SELECT id,name,url,description,category,tags,source FROM resources WHERE 1=1'; const params=[];if(category && category!=='All' && categories.includes(category)){sql+=' AND category=?';params.push(category);}if(q){const parts=q.toLowerCase().split(/\s+/).filter(Boolean).slice(0,8);for(const p of parts){sql+=' AND (lower(name) LIKE ? OR lower(description) LIKE ? OR lower(tags) LIKE ? OR lower(category) LIKE ?)';for(let i=0;i<4;i++)params.push(`%${p}%`);}}sql+=' ORDER BY CASE source WHEN \'community\' THEN 0 ELSE 1 END, name LIMIT 60';return db.prepare(sql).all(...params);}
+function searchResources(q, category){let sql='SELECT id,name,url,description,category,tags,source,approved_at FROM resources WHERE 1=1'; const params=[];if(category && category!=='All' && categories.includes(category)){sql+=' AND category=?';params.push(category);}if(q){const parts=q.toLowerCase().split(/\s+/).filter(Boolean).slice(0,8);for(const p of parts){sql+=' AND (lower(name) LIKE ? OR lower(description) LIKE ? OR lower(tags) LIKE ? OR lower(category) LIKE ?)';for(let i=0;i<4;i++)params.push(`%${p}%`);}}sql+=' ORDER BY CASE source WHEN \'community\' THEN 0 ELSE 1 END, name LIMIT 60';return db.prepare(sql).all(...params);}
 function safePublicFile(pathname,res) {
   // Allowlist original artwork assets; no dynamic filesystem paths or directory traversal.
   if(pathname.startsWith('/assets/')){
@@ -118,6 +118,7 @@ export const server=http.createServer(async(req,res)=>{
     if(p==='/api/categories')return j(res,200,{categories});
     if(p==='/api/guilds')return j(res,200,{guilds:community.list(mesh.auth(req.headers.authorization)?.id||null)});
     if(p.startsWith('/api/guilds/')){const g=community.guild(p.slice('/api/guilds/'.length),mesh.auth(req.headers.authorization)?.id||null);return j(res,g?200:404,g?{guild:g}:{error:'Guild not found.'});}
+    if(p==='/api/admin/source-reports'){if(!authenticate(req))return j(res,401,{error:'Unauthorized'});return j(res,200,{reports:community.sourceReports()});}
     if(p==='/api/admin/launch'){if(!authenticate(req))return j(res,401,{error:'Unauthorized'});return j(res,200,community.launchReport());}
     if(p==='/api/admin/guild-posts'){if(!authenticate(req))return j(res,401,{error:'Unauthorized'});return j(res,200,{posts:community.moderation()});}
     if(p==='/api/mesh/stats')return j(res,200,mesh.stats());
@@ -150,7 +151,7 @@ export const server=http.createServer(async(req,res)=>{
     if(safePublicFile(p,res))return;return j(res,404,{error:'Not found'});
   }
   if(req.method!=='POST')return j(res,405,{error:'Method not allowed'});
-  if(!['/api/join','/api/submit','/api/privacy-request','/api/admin/review','/api/admin/autonomy/control','/api/admin/autonomy/source','/api/admin/autonomy/candidate','/api/mesh/register','/api/mesh/login','/api/mesh/logout','/api/mesh/checkin','/api/mesh/orientation','/api/mesh/submit','/api/mesh/redeem','/api/mesh/sponsor','/api/guilds/create','/api/guilds/join','/api/guilds/leave','/api/guilds/post','/api/guilds/report','/api/admin/guild-post','/api/telemetry','/api/internal/autonomy/tick','/api/internal/autonomy/claim','/api/internal/autonomy/report'].includes(p))return j(res,404,{error:'Not found'});
+  if(!['/api/join','/api/submit','/api/privacy-request','/api/admin/review','/api/admin/autonomy/control','/api/admin/autonomy/source','/api/admin/autonomy/candidate','/api/mesh/register','/api/mesh/login','/api/mesh/logout','/api/mesh/checkin','/api/mesh/orientation','/api/mesh/submit','/api/mesh/redeem','/api/mesh/sponsor','/api/guilds/create','/api/guilds/join','/api/guilds/leave','/api/guilds/post','/api/guilds/report','/api/admin/guild-post','/api/admin/source-report','/api/mesh/source-report','/api/telemetry','/api/internal/autonomy/tick','/api/internal/autonomy/claim','/api/internal/autonomy/report'].includes(p))return j(res,404,{error:'Not found'});
   if(p.startsWith('/api/admin/')&&!authenticate(req))return j(res,401,{error:'Unauthorized'});
   if(p==='/api/internal/autonomy/tick'&&!cronAuthenticate(req))return j(res,401,{error:'Unauthorized'});
   if(['/api/internal/autonomy/claim','/api/internal/autonomy/report'].includes(p)&&!workerAuthenticate(req))return j(res,401,{error:'Unauthorized'});
@@ -163,6 +164,13 @@ export const server=http.createServer(async(req,res)=>{
     if(p==='/api/telemetry'){
       if(limited(req,'aggregate-events',80))return j(res,429,{error:'Telemetry rate limit.'});
       const r=community.track(clean(b.event,35),b.target);return j(res,r.error?422:202,r);
+    }
+    if(p==='/api/admin/source-report'){
+      const r=community.reviewSourceReport(b.reportId,clean(b.decision,18));return j(res,r.error?409:200,r);
+    }
+    if(p==='/api/mesh/source-report'){
+      const member=mesh.auth(req.headers.authorization);if(!member)return j(res,401,{error:'Sign in to report a source.'});
+      const r=community.reportSource(member,b.resourceId,b.reason,b.detail);return j(res,r.error?422:201,r);
     }
     if(p==='/api/admin/guild-post'){
       const r=community.moderatePost(Number(b.postId),clean(b.action,12));return j(res,r.error?422:200,r);

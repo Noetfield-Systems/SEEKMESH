@@ -78,5 +78,20 @@ test('E2E: starts, live data, search, invite, review, reputation, security and p
    assert.equal(report.body.sevenDay.totals.page_home,1);assert.equal(report.body.sevenDay.totals.source_click,1);
    assert.equal(report.body.paymentsCollected,null);
  });
+ await t.test('Verified member source reports: reason, dedup, admin queue, resolution',async()=>{
+   const login=await request('/api/mesh/login','POST',{handle:'GuildFounder',password:'twelve-or-more-characters!'});
+   assert.equal(login.status,200);const owner={authorization:'Bearer '+login.body.token};
+   const anon=await request('/api/mesh/source-report','POST',{resourceId:1,reason:'broken-link'});assert.equal(anon.status,401);
+   const invalid=await request('/api/mesh/source-report','POST',{resourceId:1,reason:'profit'} ,owner);assert.equal(invalid.status,422);
+   const good=await request('/api/mesh/source-report','POST',{resourceId:1,reason:'outdated',detail:'Please check the current project documentation.'},owner);
+   assert.equal(good.status,201);assert.equal(good.body.reportRecorded,true);
+   const repeat=await request('/api/mesh/source-report','POST',{resourceId:1,reason:'outdated'},owner);
+   assert.equal(repeat.status,201);assert.equal(repeat.body.reportRecorded,false);
+   assert.equal((await request('/api/admin/source-reports')).status,401);
+   const reports=await request('/api/admin/source-reports','GET',null,{'x-admin-key':'test-admin-secret'});
+   assert.equal(reports.status,200);assert.equal(reports.body.reports.length,1);
+   assert.equal((await request('/api/admin/source-report','POST',{reportId:reports.body.reports[0].id,decision:'resolved'},{'x-admin-key':'test-admin-secret'})).status,200);
+   assert.equal((await request('/api/admin/launch','GET',null,{'x-admin-key':'test-admin-secret'})).body.openSourceReports,0);
+ });
  await t.test('Public machine-readable discovery and web page',async()=>{const agent=await request('/api/agent.json');assert.equal(agent.status,200);assert.match(agent.body.api.search,/api\/resources/);const page=await fetch(base+'/');assert.equal(page.status,200);const html=await page.text();assert.match(html,/SEEKMESH/);const css=await fetch(base+'/styles.css');assert.equal(css.status,200);const operator=await fetch(base+'/operator');assert.equal(operator.status,200);assert.match(await operator.text(),/Operator Console/);const opjs=await fetch(base+'/operator.js');assert.equal(opjs.status,200);const robots=await fetch(base+'/robots.txt');assert.equal(robots.status,200);});
 });
