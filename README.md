@@ -98,3 +98,7 @@ No token is issued, email verification is not enabled, and logical shards are no
 ## v0.5 — Account-driven Web3 discovery economy
 
 Pseudonymous member login with scrypt password hashes and session tokens; ledger-backed XP and MESH Credits (off-chain, non-transferable). Daily check-ins and primer quest credit exactly once; reviewed submissions earn 40 XP and 20 credits, with 15 XP/5 credits for a referring member only when their referral contributes an approved source. Owners of approved listings may redeem 20 credits for a seven-day, clearly labeled community spotlight (max six concurrent). No issued token, USDC payout, implied future entitlement, or confirmed sponsorship transaction. Backend routes are under `/api/mesh/*`. Marketing metrics are sourced from real SQLite records.
+
+## v0.9 — Working Realm launch
+
+Live Guilds, member-source reports, wallet EIP-191 ownership proof, ledger-backed rewards, founder revenue follow-up and seven-day launch analytics are wired. Native token, collected revenue and external social distribution are not claimed. See [Launch operations](docs/LAUNCH_OPERATIONS_V0_9.md).

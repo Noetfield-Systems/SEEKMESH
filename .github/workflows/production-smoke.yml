@@ -62,4 +62,8 @@ jobs:
           curl -fsS --max-time 20 "$BASE/market" -o /tmp/seekmesh-market.html
           grep -q 'id="market"' /tmp/seekmesh-market.html
           curl -fsS --max-time 20 "$BASE/api/autonomy/status" | jq -e '.enabled==true'
+          test "$(curl -sS -o /tmp/workpackets-anon.json -w '%{http_code}' --max-time 20 "$BASE/api/admin/mesh/workpackets")" = "401"
+          grep -q 'error' /tmp/workpackets-anon.json
+          curl -fsS --max-time 20 "$BASE/market" -o /tmp/seekmesh-market-pilot.html
+          grep -q 'Founding Discovery Intelligence Pack' /tmp/seekmesh-market-pilot.html
           echo 'SEEKMESH REALM v0.8 signed wallets + guilds + launch operating system smoke PASS'
