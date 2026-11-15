@@ -37,6 +37,8 @@ jobs:
           grep -q 'id="mission-grid"' /tmp/seekmesh-home.html
           curl -fsS --max-time 20 "$BASE/terminal.js" -o /tmp/seekmesh-frontend.js
           grep -q '/api/mesh/submit' /tmp/seekmesh-frontend.js
+          grep -q '/api/mesh/wallet-challenge' /tmp/seekmesh-frontend.js
+          grep -q 'personal_sign' /tmp/seekmesh-frontend.js
           for asset in hero avatar missions explore guilds build rewards market; do
             curl -fsS --max-time 20 "$BASE/assets/realm-$asset.webp" -o "/tmp/realm-$asset.webp"
             test "$(wc -c < "/tmp/realm-$asset.webp")" -gt 1000

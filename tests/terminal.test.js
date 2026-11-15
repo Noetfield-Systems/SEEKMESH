@@ -50,7 +50,7 @@ test('No fabricated explorer metrics or tradable-token promises',()=>{
  assert.match(backend,/tokenIssued:false/);
 });
 test('All active scripts parse with Node 22',()=>{
- for(const file of ['public/terminal.js','economy/core.js','server.js']){
+ for(const file of ['public/terminal.js','public/operator.js','economy/core.js','community/engine.js','wallet/link.js','server.js']){
   const r=spawnSync(process.execPath,['--check',path.join(root,file)],{encoding:'utf8'});
   assert.equal(r.status,0,file+' syntax error: '+r.stderr);
  }
@@ -71,4 +71,14 @@ test('Visitors can flag a source and founder can resolve a report',()=>{
  assert.match(server,/api\/mesh\/source-report/);assert.match(server,/api\/admin\/source-reports/);
  assert.match(js,/form-source-report/);assert.match(js,/data-report-source/);
  assert.match(content('public/operator.html'),/id="source-reports"/);
+});
+
+test('EIP-191 wallet linking is signed, replay resistant and optional',()=>{
+ const js=content('public/terminal.js'),server=content('server.js');
+ assert.match(js,/api\/mesh\/wallet-challenge/);
+ assert.match(js,/personal_sign/);
+ assert.match(js,/api\/mesh\/wallet-verify/);
+ assert.match(js,/api\/mesh\/wallet-unlink/);
+ assert.match(server,/WalletLink/);
+ assert.match(content('wallet/link.js'),/verifyMessage/);
 });
