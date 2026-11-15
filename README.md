@@ -94,3 +94,7 @@ The connected Founder OS may consume the read-only `/api/admin/autonomy/workpack
 Start: https://seekmesh-web-production.up.railway.app/start | Search: https://seekmesh-web-production.up.railway.app/explore | Join: https://seekmesh-web-production.up.railway.app/?action=join | Submit: https://seekmesh-web-production.up.railway.app/?action=submit | Feedback: https://github.com/Noetfield-Systems/SEEKMESH/issues/2
 
 No token is issued, email verification is not enabled, and logical shards are not running remote workers. See [public launch playbook](docs/PUBLIC_LAUNCH_PLAYBOOK.md).
+
+## v0.5 — Account-driven Web3 discovery economy
+
+Pseudonymous member login with scrypt password hashes and session tokens; ledger-backed XP and MESH Credits (off-chain, non-transferable). Daily check-ins and primer quest credit exactly once; reviewed submissions earn 40 XP and 20 credits, with 15 XP/5 credits for a referring member only when their referral contributes an approved source. Owners of approved listings may redeem 20 credits for a seven-day, clearly labeled community spotlight (max six concurrent). No issued token, USDC payout, implied future entitlement, or confirmed sponsorship transaction. Backend routes are under `/api/mesh/*`. Marketing metrics are sourced from real SQLite records.
