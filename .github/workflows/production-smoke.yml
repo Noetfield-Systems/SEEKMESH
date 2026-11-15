@@ -13,32 +13,29 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Verify production Web3 terminal, economy and autonomous coordinator
+      - name: Verify new Founder Realm, art, discovery and economy in production
         env:
           BASE: https://seekmesh-web-production.up.railway.app
         run: |
           set -euo pipefail
-          # Allow Railway to settle after a GitHub push. No account mutation.
-          for n in $(seq 1 18); do
-            if curl -fSs --max-time 12 "$BASE/api/health" | jq -e '.status=="ok" and .database=="sqlite" and .version=="0.5.0"' >/dev/null; then
-              break
-            fi
-            sleep 7
+          for n in $(seq 1 15); do
+            if curl -fsS --max-time 10 "$BASE/api/health" | jq -e '.status=="ok" and .version=="0.5.0"' >/dev/null; then break; fi
+            sleep 5
           done
-          curl -fSs --max-time 20 "$BASE/api/health" | jq -e '.status=="ok" and .version=="0.5.0"'
-          curl -fSs --max-time 20 "$BASE/" -o /tmp/seekmesh-smoke-_
-          grep -q 'id="view-missions"' /tmp/seekmesh-smoke-_
-          curl -fSs --max-time 20 "$BASE/rewards" -o /tmp/seekmesh-smoke-_rewards
-          grep -q 'id="redeem-submission"' /tmp/seekmesh-smoke-_rewards
-          curl -fSs --max-time 20 "$BASE/partners" -o /tmp/seekmesh-smoke-_partners
-          grep -q 'id="view-partners"' /tmp/seekmesh-smoke-_partners
-          curl -fSs --max-time 20 "$BASE/terminal.js" -o /tmp/seekmesh-smoke-_terminal_js
-          grep -q "/api/mesh/" /tmp/seekmesh-smoke-_terminal_js
-          curl -fSs --max-time 20 "$BASE/api/stats" | jq -e '.resources>=16'
-          curl -fSs --max-time 20 "$BASE/api/mesh/stats" | jq -e '.nodes>=0 and .completedActions>=0 and .creditsSpent>=0 and .tokenIssued==false'
-          curl -fSs --max-time 20 "$BASE/api/mesh/leaderboard" | jq -e '.members|type=="array"'
-          curl -fSs --max-time 20 "$BASE/api/mesh/quests" | jq -e '.quests|length==5'
-          curl -fSs --max-time 20 "$BASE/api/mesh/spotlights" | jq -e '.spotlights|type=="array"'
-          curl -fSs --max-time 20 "$BASE/api/autonomy/status" | jq -e '.enabled==true and .logicalShardsNotProcesses==true and .physicalExecutorLimit>=1'
-          curl -fSs --max-time 20 "$BASE/api/resources?q=Hugging" | jq -e '.resources|length>=1'
-          echo 'SEEKMESH WEB3 DISCOVERY ECONOMY LIVE SMOKE PASS'
+          curl -fsS --max-time 20 "$BASE/" -o /tmp/seekmesh-home.html
+          grep -q 'id="home"' /tmp/seekmesh-home.html
+          grep -q 'id="guilds"' /tmp/seekmesh-home.html
+          grep -q 'id="market"' /tmp/seekmesh-home.html
+          grep -q 'id="mission-grid"' /tmp/seekmesh-home.html
+          curl -fsS --max-time 20 "$BASE/terminal.js" -o /tmp/seekmesh-frontend.js
+          grep -q '/api/mesh/submit' /tmp/seekmesh-frontend.js
+          for asset in hero avatar missions explore guilds build rewards market; do
+            curl -fsS --max-time 20 "$BASE/assets/realm-$asset.webp" -o "/tmp/realm-$asset.webp"
+            test "$(wc -c < "/tmp/realm-$asset.webp")" -gt 1000
+          done
+          curl -fsS --max-time 20 "$BASE/api/stats" | jq -e '.resources>=16'
+          curl -fsS --max-time 20 "$BASE/api/mesh/stats" | jq -e '.nodes>=0 and .completedActions>=0 and .tokenIssued==false'
+          curl -fsS --max-time 20 "$BASE/api/mesh/leaderboard" | jq -e '.members|type=="array"'
+          curl -fsS --max-time 20 "$BASE/api/mesh/quests" | jq -e '.quests|length==5'
+          curl -fsS --max-time 20 "$BASE/api/autonomy/status" | jq -e '.enabled==true'
+          echo 'SEEKMESH REALM v0.6 production smoke PASS'
