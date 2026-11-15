@@ -42,3 +42,5 @@
 #form-guild-post button{align-self:flex-start}
 #form-guild-post small{color:#b8cce6}
 @media(max-width:800px){.guild-two-columns{grid-template-columns:1fr}.guild-detail{padding:17px}.guild-meta{gap:7px}.guild-signal{padding:12px}}
+
+.source-proof{display:flex;gap:10px;align-items:center;justify-content:space-between;border-top:1px solid rgba(195,215,255,.25);padding-top:8px;margin-top:10px;font-size:10px;color:#c0d8f5;flex-wrap:wrap}.source-proof button{background:transparent;border:0;color:#ffd99e;font-size:10px;padding:5px;text-decoration:underline;cursor:pointer}.source-proof span{flex:1;min-width:140px}

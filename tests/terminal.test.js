@@ -65,3 +65,10 @@ test('Launch guild routes and controls are real, not just editorial community li
  assert.match(server,/'\/market':'terminal.html'/);
  assert.match(server,/CommunityLayer/);
 });
+
+test('Visitors can flag a source and founder can resolve a report',()=>{
+ const server=content('server.js'),html=content('public/terminal.html'),js=content('public/terminal.js');
+ assert.match(server,/api\/mesh\/source-report/);assert.match(server,/api\/admin\/source-reports/);
+ assert.match(js,/form-source-report/);assert.match(js,/data-report-source/);
+ assert.match(content('public/operator.html'),/id="source-reports"/);
+});

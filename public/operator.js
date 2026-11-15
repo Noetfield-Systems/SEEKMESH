@@ -10,7 +10,7 @@ $('jobs').innerHTML=x.jobs.slice(0,60).map(j=>`<div class="item"><div class="ite
 $('events').innerHTML=x.events.slice(0,60).map(e=>`<div class="item"><div class="item-header"><span>${esc(e.kind)}</span><small>${esc(e.created_at)}</small></div><p>${esc(e.detail)}</p><small>ACTOR ${esc(e.actor)}</small></div>`).join('')||'<div class="empty">No execution receipts yet.</div>';
 $('pause').disabled=s.paused;$('resume').disabled=!s.paused;
 }
-function renderLaunch(launch,submissions,sponsors,guilds){
+function renderLaunch(launch,submissions,sponsors,guilds,sourceReports){
  const daily=launch?.sevenDay?.totals||{};
  $('launch-stats').innerHTML=metric(launch?.members??'—','REGISTERED EXPLORERS')+
  metric(launch?.guilds??'—','REAL GUILDS')+metric(launch?.guildMemberships??'—','GUILD MEMBERSHIPS')+
@@ -28,12 +28,16 @@ function renderLaunch(launch,submissions,sponsors,guilds){
  $('guild-report-count').textContent=posts.length+' FLAGGED / HIDDEN';
  $('guild-reports').innerHTML=posts.slice(0,60).map(p=>`<div class="item"><div class="item-header"><span>${esc(p.guild)} · @${esc(p.author)}</span><span class="tag">${esc(p.status)} / ${p.reports} REPORTS</span></div><p>${esc(p.body)}</p><div class="mini-actions"><button data-guild-moderate="restore" data-post-id="${p.id}">RESTORE</button><button class="negative" data-guild-moderate="hide" data-post-id="${p.id}">HIDE</button></div></div>`).join('')||'<div class="empty">No flagged guild messages.</div>';
 }
+ const quality=(sourceReports?.reports||[]).filter(x=>x.state==='open');
+ $('source-report-count').textContent=quality.length+' OPEN REPORTS';
+ $('source-reports').innerHTML=quality.slice(0,80).map(r=>`<div class="item"><div class="item-header"><span>${esc(r.resource)} · ${esc(r.reason)}</span><span class="tag">OPEN</span></div><p><a href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">${esc(r.url)}</a></p><p>${esc(r.detail||'No additional details.')}</p><small>Reported by @${esc(r.reporter)} · ${esc(r.created_at)}</small><div class="mini-actions"><button data-report-decision="resolved" data-report-id="${r.id}">RESOLVED ✓</button><button class="negative" data-report-decision="dismissed" data-report-id="${r.id}">DISMISS ×</button></div></div>`).join('')||'<div class="empty">No open resource reports.</div>';
+}
 async function refresh(){
  if(!key)return;
  try{render(await api('/api/admin/autonomy'));}catch(e){notice(e.message);return;}
  const extras=await Promise.allSettled([
   api('/api/admin/launch'),api('/api/admin/submissions'),
-  api('/api/admin/mesh/sponsors'),api('/api/admin/guild-posts')]);
+  api('/api/admin/mesh/sponsors'),api('/api/admin/guild-posts'),api('/api/admin/source-reports')]);
  const val=extras.map(x=>x.status==='fulfilled'?x.value:null);
  renderLaunch(...val);
  if(extras.some(x=>x.status==='rejected'))notice('Launch detail partially unavailable; operational controls remain available.');
@@ -55,4 +59,11 @@ $('guild-reports').addEventListener('click',async e=>{
  const b=e.target.closest('button[data-guild-moderate]');if(!b)return;
  const action=b.dataset.guildModerate,postId=Number(b.dataset.postId);
  try{await api('/api/admin/guild-post',{action,postId});await refresh();notice('Guild moderation updated.');}catch(err){notice(err.message);}
+});
+
+$('source-reports').addEventListener('click',async e=>{
+ const button=e.target.closest('button[data-report-decision]');if(!button)return;
+ const decision=button.dataset.reportDecision,reportId=Number(button.dataset.reportId);
+ try{await api('/api/admin/source-report',{reportId,decision});await refresh();notice('Source quality report '+decision+'.');}
+ catch(err){notice(err.message);}
 });
