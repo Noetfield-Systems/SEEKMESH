@@ -34,3 +34,9 @@ if(location.pathname==='/explore'||location.pathname==='/manifesto')requestAnima
 // Transparent telemetry: no claims of active workers until the runtime reports them.
 async function getAutonomy(){try{const x=await api('/api/autonomy/status');$('auto-state').textContent=!x.enabled?'NOT ENABLED':x.paused?'PAUSED':x.schedulerRunning?'RUNNING':'NOT STARTED';$('auto-sources').textContent=Number(x.sources).toLocaleString();$('auto-jobs').textContent=Number(x.queues.queued||0).toLocaleString();$('auto-checks').textContent=Number(Object.values(x.auditsLast7Days||{}).reduce((a,b)=>a+b,0)).toLocaleString();const note=$('source-note');if(x.enabled&&x.schedulerRunning)note.textContent='Autonomous discovery and source freshness checks are running. New machine-discovered entries require founder review before publication; source information is not guaranteed current.';}catch{$('auto-state').textContent='UNAVAILABLE';}}
 getAutonomy();setInterval(getAutonomy,90000);
+
+// Shareable campaign entrypoints: direct join and source contribution, no separate registration system.
+const action = new URLSearchParams(location.search).get('action');
+const requestedPersona = new URLSearchParams(location.search).get('persona');
+if (action === 'join') showModal('join', ['Explorer','Builder','Curator','Agent Developer','Community','Partner'].includes(requestedPersona) ? requestedPersona : 'Explorer');
+else if (action === 'submit') showModal('submit');

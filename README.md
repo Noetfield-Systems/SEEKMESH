@@ -41,11 +41,11 @@ This build adds a **durable, bounded Autonomy OS** to the original MVP instead o
 - Machine-readable read-only Company OS workpackets and QA/repair proposals
 - Honest public telemetry in homepage and `/api/autonomy/status`
 
-**The app is not deployed by this source package.** 24/7 execution requires the Node service to remain alive (or an external scheduler and worker to trigger it); a free Cloudflare Worker does not create thousands of actively running processes. All agent role definitions and logical shard capacity are configuration, not deployed worker counts. Review [docs/AUTONOMY_OS_OPERATIONS.md](docs/AUTONOMY_OS_OPERATIONS.md).
+**Production is deployed on Railway** at https://seekmesh-web-production.up.railway.app/. 24/7 execution requires the Node service to remain alive (or an external scheduler and worker to trigger it); a free Cloudflare Worker does not create thousands of actively running processes. All agent role definitions and logical shard capacity are configuration, not deployed worker counts. Review [docs/AUTONOMY_OS_OPERATIONS.md](docs/AUTONOMY_OS_OPERATIONS.md).
 
 ## What does NOT exist yet
 
-Not publicly deployed; no active payment rail, onchain token, custodial wallet, live users, verified email, AI model connected by default, production deployment, completed external job wiring, or managed verification authority. These are roadmap items, not implied launch claims.
+The product is publicly deployed with source-linked search, interest registration and human-reviewed submissions. No active payment rail, onchain token, custodial wallet, verified email, default AI model connection, verified user acquisition figures, completed external agent job wiring, or managed verification authority is claimed.
 
 ## Run the founder console
 
@@ -88,3 +88,9 @@ If you connect a verified repository, deploy the source as-is. Do not publish `d
 - No token issuance, speculative on-chain points, or unverifiable autonomous publishing.
 
 The connected Founder OS may consume the read-only `/api/admin/autonomy/workpackets` feed with a configured credential. Outbound control-plane sync is not activated by default.
+
+## Public founding launch — November 15, 2026
+
+Start: https://seekmesh-web-production.up.railway.app/start | Search: https://seekmesh-web-production.up.railway.app/explore | Join: https://seekmesh-web-production.up.railway.app/?action=join | Submit: https://seekmesh-web-production.up.railway.app/?action=submit | Feedback: https://github.com/Noetfield-Systems/SEEKMESH/issues/2
+
+No token is issued, email verification is not enabled, and logical shards are not running remote workers. See [public launch playbook](docs/PUBLIC_LAUNCH_PLAYBOOK.md).
