@@ -1,3 +1,5 @@
+> HISTORICAL v0.5 DRAFT (not current authority). Canonical Web3-native economy: [ECONOMY_V1.md](ECONOMY_V1.md) and [machine SSOT](../spec/seekmesh.ssot.json). This older document may mention Stripe; SEEKMESH is independent and does not use another venture's billing infrastructure.
+
 # SEEKMESH Economy — founder design, not a token launch
 
 ## Two distinct units now

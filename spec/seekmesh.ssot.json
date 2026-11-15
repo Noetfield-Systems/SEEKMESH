@@ -1,0 +1,141 @@
+{
+  "version": "1.0.0",
+  "date": "2026-11-15",
+  "project": "SEEKMESH",
+  "brand": "The Web3 Discovery Realm",
+  "identity": {
+    "type": "independent_web3_initiative",
+    "notProductOf": [
+      "Noetfield Systems Inc."
+    ],
+    "legalOperator": "not yet evidenced from connected project data",
+    "technicalRepo": "Noetfield-Systems/SEEKMESH",
+    "publicUrl": "https://seekmesh-web-production.up.railway.app"
+  },
+  "thesis": "Information is abundant; trusted discovery is scarce. Humans and AI agents who make the internet discoverable should participate in the value they create.",
+  "mission": "Discover the next internet. Prove what's real. Build your place in it.",
+  "genre": "premium original fantasy Web3 discovery world; real-world discovery and verified missions beneath playful visual design",
+  "pillars": [
+    "Discovery Graph",
+    "Living Realm",
+    "Proof & Reputation",
+    "Settlement & Value"
+  ],
+  "targetSegments": [
+    "AI agent and MCP builders",
+    "EVM/Web3 explorers",
+    "curators and guilds",
+    "open-source protocols",
+    "funded ecosystem mission sponsors",
+    "agent-facing API developers"
+  ],
+  "currentProducts": [
+    "real source-linked public index",
+    "quest and offchain XP/credits",
+    "member identity and verified wallet linkage",
+    "guilds/membership/posts",
+    "autonomy coordinator",
+    "editorial approval and spotlight redemption",
+    "partnership inquiry"
+  ],
+  "units": {
+    "xp": {
+      "status": "LIVE",
+      "transferable": false,
+      "redeemableForCash": false
+    },
+    "meshCredits": {
+      "status": "LIVE",
+      "transferable": false,
+      "redeemableForCash": false,
+      "spotlightCost": 20,
+      "spotlightDurationDays": 7
+    },
+    "SEEK": {
+      "status": "NOT_ISSUED",
+      "ticker": "SEEK",
+      "tickerProvisional": true,
+      "maxSupplyProposal": 1000000000,
+      "capRatified": false,
+      "guaranteedAirdrop": false
+    }
+  },
+  "chain": {
+    "currentWalletProof": "nonce-bound EIP-191 address verification",
+    "siweERC4361": "PLANNED",
+    "selectedSettlementChain": "NOT_SELECTED",
+    "pilotCandidate": "Base",
+    "tokenAddress": null,
+    "escrowContractAddress": null,
+    "treasuryAddress": null
+  },
+  "settlement": {
+    "web3NativePath": "USDC-backed escrow campaigns and x402 metered APIs",
+    "status": "DESIGNED_NOT_DEPLOYED",
+    "paymentCollectedInProduct": false,
+    "collateralizedRewards": false,
+    "traditionalCheckoutDefault": false
+  },
+  "rewards": {
+    "daily": {
+      "xp": 4,
+      "credits": 2
+    },
+    "join": {
+      "xp": 25,
+      "credits": 5
+    },
+    "orientation": {
+      "xp": 20,
+      "credits": 5
+    },
+    "acceptedSource": {
+      "xp": 40,
+      "credits": 20
+    },
+    "qualifiedReferral": {
+      "xp": 15,
+      "credits": 5
+    }
+  },
+  "scope": {
+    "season": "Season Zero",
+    "genesisStart": "2026-11-15",
+    "genesisEnd": "2026-12-15",
+    "activeGuildMembership": true,
+    "fullyOnchainGuild": false,
+    "liveTrading": false,
+    "onchainTokenIssued": false
+  },
+  "supplyProposal": {
+    "community": 40,
+    "ecosystem": 20,
+    "team": 15,
+    "treasury": 10,
+    "integrations": 10,
+    "liquidityReserve": 5,
+    "unit": "percent",
+    "status": "NON_BINDING_PROPOSAL"
+  },
+  "canonicalDocuments": [
+    "docs/WHITEPAPER_V1.md",
+    "docs/SEEKMESH_SSOT_V1.md",
+    "docs/WORLD_BIBLE_V1.md",
+    "docs/PROTOCOL_BLUEPRINT_V1.md",
+    "docs/ECONOMY_V1.md",
+    "docs/COMPETITORS_GTM_V1.md",
+    "docs/IMPLEMENTATION_LEDGER_V1.md"
+  ],
+  "benchmarks": [
+    "Axie Infinity / Ronin",
+    "Pixels",
+    "Layer3",
+    "Zealy",
+    "Presearch",
+    "DappRadar",
+    "Cookie / Kaito InfoFi lessons",
+    "Galxe/Gravity transition"
+  ],
+  "status": "MASTER_STRATEGIC_SOURCE_NON_ONCHAIN",
+  "metricsAreFromLiveDataOnly": true
+}

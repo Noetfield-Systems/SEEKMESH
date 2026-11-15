@@ -1,3 +1,5 @@
+> HISTORICAL benchmark/product draft. Canonical current competitors and GTM: [COMPETITORS_GTM_V1.md](COMPETITORS_GTM_V1.md). The old CAD-service framing is superseded by native wallet-funded missions, x402 API payments and source-linked utility defined in the [SSOT](../spec/seekmesh.ssot.json).
+
 # SEEKMESH — Benchmark → Product Contract (2026-11-15)
 
 ## Founding product correction

@@ -82,3 +82,19 @@ test('EIP-191 wallet linking is signed, replay resistant and optional',()=>{
  assert.match(server,/WalletLink/);
  assert.match(content('wallet/link.js'),/verifyMessage/);
 });
+
+test('Web3 independent whitepaper and no unrelated SaaS pricing in active market',()=>{
+ const html=content('public/terminal.html');
+ const server=content('server.js');
+ const paper=content('public/whitepaper.html');
+ const ssot=JSON.parse(content('spec/seekmesh.ssot.json'));
+ assert.doesNotMatch(html,/C\$149|Stripe|Noetfield Systems product/);
+ assert.match(html,/WEB3-NATIVE ECONOMY/);
+ assert.match(html,/x402/);
+ assert.match(html,/href="\/whitepaper"/);
+ assert.match(server,/'\/whitepaper':'whitepaper.html'/);
+ assert.match(paper,/Independent Web3 initiative/);
+ assert.match(ssot.identity.type,/independent_web3/);
+ assert.equal(ssot.units.SEEK.status,'NOT_ISSUED');
+ assert.equal(ssot.settlement.traditionalCheckoutDefault,false);
+});

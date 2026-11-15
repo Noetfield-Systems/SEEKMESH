@@ -1,0 +1,30 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+const root=path.resolve(import.meta.dirname,'..');
+const read=p=>fs.readFileSync(path.join(root,p),'utf8');
+test('Canonical Web3 SSOT is complete and internally consistent',()=>{
+ const s=JSON.parse(read('spec/seekmesh.ssot.json'));
+ assert.equal(s.project,'SEEKMESH');
+ assert.equal(s.identity.type,'independent_web3_initiative');
+ assert.ok(s.identity.notProductOf.includes('Noetfield Systems Inc.'));
+ assert.equal(s.units.SEEK.status,'NOT_ISSUED');
+ assert.equal(s.units.SEEK.guaranteedAirdrop,false);
+ assert.equal(s.chain.selectedSettlementChain,'NOT_SELECTED');
+ assert.equal(s.settlement.status,'DESIGNED_NOT_DEPLOYED');
+ assert.equal(s.settlement.traditionalCheckoutDefault,false);
+ assert.equal(s.settlement.paymentCollectedInProduct,false);
+ assert.equal(Object.values(s.supplyProposal).filter(n=>typeof n==='number').reduce((a,b)=>a+b,0),100);
+ for(const name of s.canonicalDocuments)assert.ok(fs.existsSync(path.join(root,name)),name+' missing');
+});
+test('Whitepaper links to actual master docs; public page does not claim issued token',()=>{
+ const html=read('public/whitepaper.html');
+ const paper=read('docs/WHITEPAPER_V1.md');
+ assert.match(html,/The world of/);
+ assert.match(html,/NOT ISSUED/);
+ assert.match(html,/docs\/WHITEPAPER_V1.md/);
+ assert.match(html,/docs\/PROTOCOL_BLUEPRINT_V1.md/);
+ assert.match(paper,/not a token sale|not an announcement of a minted token/i);
+ assert.match(read('server.js'),/'\/whitepaper.css':'whitepaper.css'/);
+});

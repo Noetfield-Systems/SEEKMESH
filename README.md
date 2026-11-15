@@ -1,4 +1,14 @@
-# SEEKMESH — The Discovery Protocol
+# SEEKMESH — Independent Web3 Discovery Realm
+
+> **Canonical v1.0 specification (November 15, 2026):** [Master Strategy Library](docs/MASTER_INDEX.md) · [Whitepaper](docs/WHITEPAPER_V1.md) · [SSOT](spec/seekmesh.ssot.json) · [Web3 Economy](docs/ECONOMY_V1.md) · [Implementation Ledger](docs/IMPLEMENTATION_LEDGER_V1.md) · [Public Whitepaper](https://seekmesh-web-production.up.railway.app/whitepaper)
+
+**Identity:** Independent Web3-native discovery project. It is **not a Noetfield Systems product**. GitHub organization is technical code custody and does not imply a legal operating entity. Do not attach unrelated billing accounts. Wallet-funded campaigns and x402 stablecoin settlement are planned; no SEEK token or claim has launched.
+
+**Historical note:** Earlier README paragraphs and docs/BENCHMARK_TO_PRODUCT.md or docs/TOKENOMICS_V0_5.md reflect older product concepts and must not supersede the new machine-readable SSOT, implementation evidence or whitepaper.
+
+---
+
+# Historical Implementation Notes
 
 > The internet was built to be searched. The next internet will be discovered.
 
