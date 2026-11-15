@@ -30,7 +30,7 @@ test('Reframed site matches the approved eight-view Web3 Realm',()=>{
  assert.match(css,/realm-hero\.webp/);
  assert.match(css,/realm-gates/);
  assert.match(css,/@media\(max-width:760px\)/);
- assert.match(js,/api\/mesh\/register/);
+ assert.ok(js.includes("post('/api/mesh/'+state.authMode"),'Register and login must use the real member-auth API');
  assert.match(js,/api\/mesh\/checkin/);
  assert.match(js,/api\/mesh\/submit/);
  assert.match(js,/api\/mesh\/redeem/);
