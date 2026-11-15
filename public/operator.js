@@ -27,7 +27,6 @@ function renderLaunch(launch,submissions,sponsors,guilds,sourceReports){
  const posts=(guilds?.posts||[]).filter(p=>p.reports>0||p.status!=='visible');
  $('guild-report-count').textContent=posts.length+' FLAGGED / HIDDEN';
  $('guild-reports').innerHTML=posts.slice(0,60).map(p=>`<div class="item"><div class="item-header"><span>${esc(p.guild)} · @${esc(p.author)}</span><span class="tag">${esc(p.status)} / ${p.reports} REPORTS</span></div><p>${esc(p.body)}</p><div class="mini-actions"><button data-guild-moderate="restore" data-post-id="${p.id}">RESTORE</button><button class="negative" data-guild-moderate="hide" data-post-id="${p.id}">HIDE</button></div></div>`).join('')||'<div class="empty">No flagged guild messages.</div>';
-}
  const quality=(sourceReports?.reports||[]).filter(x=>x.state==='open');
  $('source-report-count').textContent=quality.length+' OPEN REPORTS';
  $('source-reports').innerHTML=quality.slice(0,80).map(r=>`<div class="item"><div class="item-header"><span>${esc(r.resource)} · ${esc(r.reason)}</span><span class="tag">OPEN</span></div><p><a href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">${esc(r.url)}</a></p><p>${esc(r.detail||'No additional details.')}</p><small>Reported by @${esc(r.reporter)} · ${esc(r.created_at)}</small><div class="mini-actions"><button data-report-decision="resolved" data-report-id="${r.id}">RESOLVED ✓</button><button class="negative" data-report-decision="dismissed" data-report-id="${r.id}">DISMISS ×</button></div></div>`).join('')||'<div class="empty">No open resource reports.</div>';
