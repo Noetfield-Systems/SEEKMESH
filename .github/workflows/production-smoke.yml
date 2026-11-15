@@ -32,6 +32,7 @@ jobs:
           curl -fsS --max-time 20 "$BASE/" -o /tmp/seekmesh-home.html
           grep -q 'id="home"' /tmp/seekmesh-home.html
           grep -q 'id="guilds"' /tmp/seekmesh-home.html
+          grep -q 'id="guild-detail"' /tmp/seekmesh-home.html
           grep -q 'id="market"' /tmp/seekmesh-home.html
           grep -q 'id="mission-grid"' /tmp/seekmesh-home.html
           curl -fsS --max-time 20 "$BASE/terminal.js" -o /tmp/seekmesh-frontend.js
@@ -44,5 +45,10 @@ jobs:
           curl -fsS --max-time 20 "$BASE/api/mesh/stats" | jq -e '.nodes>=0 and .completedActions>=0 and .tokenIssued==false'
           curl -fsS --max-time 20 "$BASE/api/mesh/leaderboard" | jq -e '.members|type=="array"'
           curl -fsS --max-time 20 "$BASE/api/mesh/quests" | jq -e '.quests|length==5'
+          curl -fsS --max-time 20 "$BASE/api/guilds" | jq -e '.guilds|type=="array"'
+          curl -fsS --max-time 20 "$BASE/guilds" -o /tmp/seekmesh-guilds.html
+          grep -q 'data-action="guild-create"' /tmp/seekmesh-guilds.html
+          curl -fsS --max-time 20 "$BASE/market" -o /tmp/seekmesh-market.html
+          grep -q 'id="market"' /tmp/seekmesh-market.html
           curl -fsS --max-time 20 "$BASE/api/autonomy/status" | jq -e '.enabled==true'
-          echo 'SEEKMESH REALM v0.6 production smoke PASS'
+          echo 'SEEKMESH REALM v0.7 guilds + launch operating system smoke PASS'
