@@ -23,7 +23,7 @@ function renderLaunch(launch,submissions,sponsors,guilds,sourceReports){
  $('community-submissions').innerHTML=pending.slice(0,50).map(s=>`<div class="item"><div class="item-header"><span>${esc(s.name)}</span><span class="tag">${esc(s.category)}</span></div><p>${esc(s.description)}</p><p><a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.url)}</a></p><small>@${esc(s.handle)} · ${esc(s.created_at)}</small><div class="mini-actions"><button data-subdecision="approve" data-id="${s.id}">APPROVE ↗</button><button class="negative" data-subdecision="reject" data-id="${s.id}">REJECT ×</button></div></div>`).join('')||'<div class="empty">Member source review queue is clear.</div>';
  const inquiries=sponsors?.inquiries||[];
  $('partner-count').textContent=inquiries.length+' RECEIVED';
- $('partner-inquiries').innerHTML=inquiries.slice(0,70).map(s=>`<div class="item"><div class="item-header"><span>${esc(s.plan)}</span><span class="tag">${esc(s.state)}</span></div><p>${esc(s.brief)}</p><p><a href="${esc(s.site)}" target="_blank" rel="noopener noreferrer">${esc(s.site)}</a></p><small>${esc(s.email)} · ${esc(s.created_at)}</small></div>`).join('')||'<div class="empty">No partner inquiries. No revenue claimed.</div>';
+ $('partner-inquiries').innerHTML=inquiries.slice(0,70).map(s=>`<div class="item"><div class="item-header"><span>${esc(s.plan)}</span><span class="tag">${esc(s.state)}</span></div><p>${esc(s.brief)}</p><p><a href="${esc(s.site)}" target="_blank" rel="noopener noreferrer">${esc(s.site)}</a></p><small>${esc(s.email)} · ${esc(s.created_at)} · ${esc(s.owner||'Unassigned')}</small><p>Next: ${esc(s.next_action||'Qualify this incoming project inquiry')} ${esc(s.due_date||'')}</p><div class="mini-actions"><button data-partner-action="update" data-partner-id="${s.id}" data-partner-state="${esc(s.state)}">RECORD NEXT ACTION ↗</button></div></div>`).join('')||'<div class="empty">No partner inquiries. No revenue claimed.</div>';
  const posts=(guilds?.posts||[]).filter(p=>p.reports>0||p.status!=='visible');
  $('guild-report-count').textContent=posts.length+' FLAGGED / HIDDEN';
  $('guild-reports').innerHTML=posts.slice(0,60).map(p=>`<div class="item"><div class="item-header"><span>${esc(p.guild)} · @${esc(p.author)}</span><span class="tag">${esc(p.status)} / ${p.reports} REPORTS</span></div><p>${esc(p.body)}</p><div class="mini-actions"><button data-guild-moderate="restore" data-post-id="${p.id}">RESTORE</button><button class="negative" data-guild-moderate="hide" data-post-id="${p.id}">HIDE</button></div></div>`).join('')||'<div class="empty">No flagged guild messages.</div>';
@@ -64,5 +64,22 @@ $('source-reports').addEventListener('click',async e=>{
  const button=e.target.closest('button[data-report-decision]');if(!button)return;
  const decision=button.dataset.reportDecision,reportId=Number(button.dataset.reportId);
  try{await api('/api/admin/source-report',{reportId,decision});await refresh();notice('Source quality report '+decision+'.');}
+ catch(err){notice(err.message);}
+});
+
+$('partner-inquiries').addEventListener('click',async e=>{
+ const b=e.target.closest('[data-partner-action]');if(!b)return;
+ const id=Number(b.dataset.partnerId),current=b.dataset.partnerState;
+ const state=prompt('Partner state: new / contacted / qualified / proposal_sent / agreed / closed',current);
+ if(!state)return;
+ const nextAction=prompt('Specific next action for this inquiry (minimum eight characters):','Follow up with the project owner regarding a scoped discovery pack');
+ if(!nextAction)return;
+ const dueDate=prompt('Next action date YYYY-MM-DD (blank if not scheduled):',new Date(Date.now()+86400000).toISOString().slice(0,10));
+ if(dueDate===null)return;
+ const owner=prompt('Responsible operator:', 'Revenue Agent');if(!owner)return;
+ const evidence=prompt('Evidence note: what happened or what the inquiry demonstrates?','Initial buyer inquiry received in SEEKMESH public partnership form');
+ if(!evidence)return;
+ try{await api('/api/admin/mesh/sponsor-action',{id,state:state.trim(),nextAction:nextAction.trim(),dueDate:dueDate.trim(),owner:owner.trim(),evidence:evidence.trim()});
+ await refresh();notice('Partner follow-up saved with an auditable next action.');}
  catch(err){notice(err.message);}
 });

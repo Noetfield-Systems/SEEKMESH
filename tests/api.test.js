@@ -113,5 +113,19 @@ test('E2E: starts, live data, search, invite, review, reputation, security and p
    assert.equal((await request('/api/mesh/wallet-unlink','POST',{password:'twelve-or-more-characters!'},memberHeader)).status,200);
    assert.equal((await request('/api/mesh/me','GET',null,memberHeader)).body.member.walletAddress,null);
  });
+ await t.test('Revenue partner: auditable next actions and Company OS-compatible workpackets, without pretending payment',async()=>{
+   const b=await request('/api/mesh/sponsor','POST',{email:'sales@partner.org',url:'https://partner.org',plan:'research',brief:'Looking for an original, source-linked AI ecosystem discovery report for builders.'});
+   assert.equal(b.status,201);assert.equal(b.body.paymentCollected,false);
+   assert.equal((await request('/api/admin/mesh/workpackets')).status,401);
+   const auth={'x-admin-key':'test-admin-secret'};
+   const before=await request('/api/admin/mesh/workpackets','GET',null,auth);
+   assert.equal(before.status,200);assert.ok(before.body.workpackets.some(x=>x.target.email==='sales@partner.org'));
+   const action=await request('/api/admin/mesh/sponsor-action','POST',{id:b.body.inquiryId,state:'qualified',nextAction:'Send tailored AI ecosystem discovery pack proposal',dueDate:'2026-11-17',owner:'Revenue Agent',evidence:'Customer submitted a scoped research request through the live product.'},auth);
+   assert.equal(action.status,200);assert.equal(action.body.paymentConfirmed,false);
+   const updated=await request('/api/admin/mesh/sponsors','GET',null,auth);
+   const lead=updated.body.inquiries.find(x=>x.id===b.body.inquiryId);assert.equal(lead.state,'qualified');assert.equal(lead.due_date,'2026-11-17');
+   const packet=await request('/api/admin/mesh/workpackets','GET',null,auth);assert.equal(packet.body.workpackets.find(x=>x.target.inquiryId===b.body.inquiryId).nextAction,'Send tailored AI ecosystem discovery pack proposal');
+   assert.equal((await request('/api/admin/mesh/sponsor-action','POST',{id:b.body.inquiryId,state:'paid',nextAction:'Fake paid order',owner:'Revenue Agent',evidence:'No verified payment exists'},auth)).status,422);
+ });
  await t.test('Public machine-readable discovery and web page',async()=>{const agent=await request('/api/agent.json');assert.equal(agent.status,200);assert.match(agent.body.api.search,/api\/resources/);const page=await fetch(base+'/');assert.equal(page.status,200);const html=await page.text();assert.match(html,/SEEKMESH/);const css=await fetch(base+'/styles.css');assert.equal(css.status,200);const operator=await fetch(base+'/operator');assert.equal(operator.status,200);assert.match(await operator.text(),/Operator Console/);const opjs=await fetch(base+'/operator.js');assert.equal(opjs.status,200);const robots=await fetch(base+'/robots.txt');assert.equal(robots.status,200);});
 });

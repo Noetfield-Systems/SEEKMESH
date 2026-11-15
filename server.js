@@ -120,6 +120,7 @@ export const server=http.createServer(async(req,res)=>{
     if(p==='/api/categories')return j(res,200,{categories});
     if(p==='/api/guilds')return j(res,200,{guilds:community.list(mesh.auth(req.headers.authorization)?.id||null)});
     if(p.startsWith('/api/guilds/')){const g=community.guild(p.slice('/api/guilds/'.length),mesh.auth(req.headers.authorization)?.id||null);return j(res,g?200:404,g?{guild:g}:{error:'Guild not found.'});}
+    if(p==='/api/admin/mesh/workpackets'){if(!authenticate(req))return j(res,401,{error:'Unauthorized'});return j(res,200,mesh.partnerWorkPackets());}
     if(p==='/api/admin/source-reports'){if(!authenticate(req))return j(res,401,{error:'Unauthorized'});return j(res,200,{reports:community.sourceReports()});}
     if(p==='/api/admin/launch'){if(!authenticate(req))return j(res,401,{error:'Unauthorized'});return j(res,200,community.launchReport());}
     if(p==='/api/admin/guild-posts'){if(!authenticate(req))return j(res,401,{error:'Unauthorized'});return j(res,200,{posts:community.moderation()});}
@@ -134,7 +135,7 @@ export const server=http.createServer(async(req,res)=>{
       {id:'submit',name:'Map a useful source',xp:40,credits:20,type:'review'},
       {id:'invite',name:'Refer a contributor',xp:15,credits:5,type:'qualified'}
     ]});
-    if(p==='/api/admin/mesh/sponsors'){if(!authenticate(req))return j(res,401,{error:'Unauthorized'});return j(res,200,{inquiries:db.prepare('SELECT * FROM mesh_sponsors ORDER BY id DESC LIMIT 100').all()});}
+    if(p==='/api/admin/mesh/sponsors'){if(!authenticate(req))return j(res,401,{error:'Unauthorized'});return j(res,200,{inquiries:mesh.partnerQueue()});}
     if(p==='/api/quests')return j(res,200,{quests});
     if(p==='/api/resources' || p==='/api/discover'){
       const q=clean(u.searchParams.get('q'),140),category=clean(u.searchParams.get('category'),80);
@@ -153,7 +154,7 @@ export const server=http.createServer(async(req,res)=>{
     if(safePublicFile(p,res))return;return j(res,404,{error:'Not found'});
   }
   if(req.method!=='POST')return j(res,405,{error:'Method not allowed'});
-  if(!['/api/join','/api/submit','/api/privacy-request','/api/admin/review','/api/admin/autonomy/control','/api/admin/autonomy/source','/api/admin/autonomy/candidate','/api/mesh/register','/api/mesh/login','/api/mesh/logout','/api/mesh/checkin','/api/mesh/orientation','/api/mesh/submit','/api/mesh/redeem','/api/mesh/sponsor','/api/guilds/create','/api/guilds/join','/api/guilds/leave','/api/guilds/post','/api/guilds/report','/api/admin/guild-post','/api/admin/source-report','/api/mesh/source-report','/api/mesh/wallet-challenge','/api/mesh/wallet-verify','/api/mesh/wallet-unlink','/api/telemetry','/api/internal/autonomy/tick','/api/internal/autonomy/claim','/api/internal/autonomy/report'].includes(p))return j(res,404,{error:'Not found'});
+  if(!['/api/join','/api/submit','/api/privacy-request','/api/admin/review','/api/admin/autonomy/control','/api/admin/autonomy/source','/api/admin/autonomy/candidate','/api/mesh/register','/api/mesh/login','/api/mesh/logout','/api/mesh/checkin','/api/mesh/orientation','/api/mesh/submit','/api/mesh/redeem','/api/mesh/sponsor','/api/guilds/create','/api/guilds/join','/api/guilds/leave','/api/guilds/post','/api/guilds/report','/api/admin/guild-post','/api/admin/source-report','/api/admin/mesh/sponsor-action','/api/mesh/source-report','/api/mesh/wallet-challenge','/api/mesh/wallet-verify','/api/mesh/wallet-unlink','/api/telemetry','/api/internal/autonomy/tick','/api/internal/autonomy/claim','/api/internal/autonomy/report'].includes(p))return j(res,404,{error:'Not found'});
   if(p.startsWith('/api/admin/')&&!authenticate(req))return j(res,401,{error:'Unauthorized'});
   if(p==='/api/internal/autonomy/tick'&&!cronAuthenticate(req))return j(res,401,{error:'Unauthorized'});
   if(['/api/internal/autonomy/claim','/api/internal/autonomy/report'].includes(p)&&!workerAuthenticate(req))return j(res,401,{error:'Unauthorized'});
@@ -166,6 +167,9 @@ export const server=http.createServer(async(req,res)=>{
     if(p==='/api/telemetry'){
       if(limited(req,'aggregate-events',80))return j(res,429,{error:'Telemetry rate limit.'});
       const r=community.track(clean(b.event,35),b.target);return j(res,r.error?422:202,r);
+    }
+    if(p==='/api/admin/mesh/sponsor-action'){
+      const r=mesh.updateSponsor(b);return j(res,r.error?422:200,r);
     }
     if(p==='/api/admin/source-report'){
       const r=community.reviewSourceReport(b.reportId,clean(b.decision,18));return j(res,r.error?409:200,r);
