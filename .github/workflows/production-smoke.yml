@@ -26,10 +26,14 @@ jobs:
             sleep 7
           done
           curl -fSs --max-time 20 "$BASE/api/health" | jq -e '.status=="ok" and .version=="0.5.0"'
-          curl -fSs --max-time 20 "$BASE/" | grep -q 'id="view-missions"'
-          curl -fSs --max-time 20 "$BASE/rewards" | grep -q 'id="redeem-submission"'
-          curl -fSs --max-time 20 "$BASE/partners" | grep -q 'id="view-partners"'
-          curl -fSs --max-time 20 "$BASE/terminal.js" | grep -q "/api/mesh/"
+          curl -fSs --max-time 20 "$BASE/" -o /tmp/seekmesh-smoke-_
+          grep -q 'id="view-missions"' /tmp/seekmesh-smoke-_
+          curl -fSs --max-time 20 "$BASE/rewards" -o /tmp/seekmesh-smoke-_rewards
+          grep -q 'id="redeem-submission"' /tmp/seekmesh-smoke-_rewards
+          curl -fSs --max-time 20 "$BASE/partners" -o /tmp/seekmesh-smoke-_partners
+          grep -q 'id="view-partners"' /tmp/seekmesh-smoke-_partners
+          curl -fSs --max-time 20 "$BASE/terminal.js" -o /tmp/seekmesh-smoke-_terminal_js
+          grep -q "/api/mesh/" /tmp/seekmesh-smoke-_terminal_js
           curl -fSs --max-time 20 "$BASE/api/stats" | jq -e '.resources>=16'
           curl -fSs --max-time 20 "$BASE/api/mesh/stats" | jq -e '.nodes>=0 and .completedActions>=0 and .creditsSpent>=0 and .tokenIssued==false'
           curl -fSs --max-time 20 "$BASE/api/mesh/leaderboard" | jq -e '.members|type=="array"'
