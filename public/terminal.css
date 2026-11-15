@@ -11,3 +11,34 @@
 @media(max-width:760px){.realm-scene{-webkit-mask-image:linear-gradient(180deg,transparent 0%,#000 13%,#000 81%,transparent 100%);mask-image:linear-gradient(180deg,transparent 0%,#000 13%,#000 81%,transparent 100%)}}
 
 .leaderboard-head{margin-top:50px}.leaderboard-panel{border:1px solid #c8dafa9e;border-radius:18px;overflow:hidden;background:linear-gradient(125deg,#1c417ac9,#293d6bce)}.rank-row{display:grid;grid-template-columns:50px 1fr 1fr 120px;gap:12px;align-items:center;padding:16px 20px;border-bottom:1px solid #dae5ff40}.rank-row:last-child{border:0}.rank-row span,.rank-row strong{color:#ffe2a5}.rank-row small{color:#d6e6fc}.rank-empty{padding:20px}@media(max-width:560px){.rank-row{grid-template-columns:35px 1fr 85px;gap:7px}.rank-row small{display:none}}
+
+/* v0.7 — real guilds, memberships, public source-quality signals. Preserve the founder-approved Realm art. */
+.guild-grid{align-items:stretch}
+.guild-card{display:flex;flex-direction:column;gap:12px;border:1px solid rgba(175,181,245,.43);background:linear-gradient(150deg,rgba(35,42,88,.80),rgba(24,40,81,.72));min-height:245px}
+.guild-card h3{font-size:23px;margin:4px 0;letter-spacing:-.03em}
+.guild-card p{line-height:1.65;color:#d6e6ff;flex:1}
+.guild-card button{align-self:flex-start}
+.guild-meta{display:flex;flex-wrap:wrap;gap:12px;color:#d6cbff;font-size:12px}
+.guild-hint{font-size:12px;color:#c3d4f5;margin:16px 0;line-height:1.6}
+.guild-detail{margin:26px 0;padding:26px;border:1px solid #c4a7ff;border-radius:18px;background:linear-gradient(140deg,rgba(28,31,85,.95),rgba(21,43,81,.92));box-shadow:0 18px 70px rgba(17,16,49,.35)}
+.guild-detail[hidden]{display:none}
+.guild-detail-head{display:flex;justify-content:space-between;gap:18px}
+.guild-detail-head h2{font-size:clamp(27px,3.5vw,42px);margin:9px 0}
+.guild-detail-head p{max-width:740px;color:#dfebff;line-height:1.7}
+.guild-detail .guild-actions{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0}
+.guild-two-columns{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(260px,.75fr);gap:28px;margin-top:15px}
+.guild-two-columns h3{font-size:21px}
+.guild-signal{position:relative;border:1px solid #6277a8;border-radius:12px;padding:15px 18px;margin-bottom:12px;background:rgba(20,33,73,.55)}
+.guild-signal>div{display:flex;justify-content:space-between;gap:12px;font-size:12px}
+.guild-signal small{color:#b9c8ed}
+.guild-signal p{color:#e0eaff;font-size:13px;overflow-wrap:anywhere}
+.guild-roster{display:flex;flex-direction:column;gap:10px}
+.guild-person{display:block;border:1px solid rgba(141,177,223,.5);border-radius:8px;padding:10px 12px;font-size:13px;color:#f4e8ff}
+.guild-missing{color:#afc3e3;font-size:13px}
+.report-btn{background:none;border:0;color:#d4d7ff;font-size:11px;text-decoration:underline;padding:2px}
+#form-guild-post{display:flex;flex-direction:column;gap:10px;margin:24px 0}
+#form-guild-post label{display:flex;flex-direction:column;gap:8px;color:#f8eaff;font-size:11px}
+#form-guild-post textarea{border:1px solid #8ca5c8;border-radius:10px;background:#192b57;color:white;padding:13px;resize:vertical}
+#form-guild-post button{align-self:flex-start}
+#form-guild-post small{color:#b8cce6}
+@media(max-width:800px){.guild-two-columns{grid-template-columns:1fr}.guild-detail{padding:17px}.guild-meta{gap:7px}.guild-signal{padding:12px}}

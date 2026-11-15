@@ -55,3 +55,13 @@ test('All active scripts parse with Node 22',()=>{
   assert.equal(r.status,0,file+' syntax error: '+r.stderr);
  }
 });
+
+test('Launch guild routes and controls are real, not just editorial community links',()=>{
+ const html=content('public/terminal.html'),js=content('public/terminal.js'),server=content('server.js');
+ assert.match(html,/data-action="guild-create"/);assert.match(html,/id="guild-detail"/);
+ assert.match(js,/api\/guilds\/create/);assert.match(js,/api\/guilds\/join/);
+ assert.match(js,/api\/guilds\/post/);assert.match(js,/api\/telemetry/);
+ assert.match(server,/'\/guilds':'terminal.html'/);
+ assert.match(server,/'\/market':'terminal.html'/);
+ assert.match(server,/CommunityLayer/);
+});
