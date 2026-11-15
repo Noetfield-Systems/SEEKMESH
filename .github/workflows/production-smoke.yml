@@ -65,5 +65,13 @@ jobs:
           test "$(curl -sS -o /tmp/workpackets-anon.json -w '%{http_code}' --max-time 20 "$BASE/api/admin/mesh/workpackets")" = "401"
           grep -q 'error' /tmp/workpackets-anon.json
           curl -fsS --max-time 20 "$BASE/market" -o /tmp/seekmesh-market-pilot.html
-          grep -q 'Founding Discovery Intelligence Pack' /tmp/seekmesh-market-pilot.html
-          echo 'SEEKMESH REALM v0.8 signed wallets + guilds + launch operating system smoke PASS'
+          grep -q 'Fund a Discovery Expedition' /tmp/seekmesh-market-pilot.html
+          grep -q 'x402' /tmp/seekmesh-market-pilot.html
+          if grep -Eq 'C\$149|Stripe' /tmp/seekmesh-market-pilot.html; then echo 'Unrelated SaaS billing still in Market'; exit 1; fi
+          curl -fsS --max-time 20 "$BASE/whitepaper" -o /tmp/seekmesh-whitepaper.html
+          grep -q 'The world of' /tmp/seekmesh-whitepaper.html
+          grep -q 'docs/WHITEPAPER_V1.md' /tmp/seekmesh-whitepaper.html
+          grep -q 'NOT ISSUED' /tmp/seekmesh-whitepaper.html
+          curl -fsS --max-time 20 "$BASE/whitepaper.css" -o /tmp/seekmesh-whitepaper.css
+          test "$(wc -c < /tmp/seekmesh-whitepaper.css)" -gt 1000
+          echo 'SEEKMESH WEB3 whitepaper + independent market + guild + wallet smoke PASS'
