@@ -315,5 +315,56 @@
     "tokenIssued": false,
     "guaranteedFutureToken": false,
     "onchainAirdrop": false
+  },
+  "realmExperience": {
+    "version": "2026.11.16-premium",
+    "productionStatus": "LIVE_DEPLOYED",
+    "interfaceSource": [
+      "public/terminal.html",
+      "public/terminal.css",
+      "public/experience.css",
+      "public/terminal.js",
+      "public/experience.js"
+    ],
+    "visualSystem": "Original SEEKMESH fantasy realm assets, midnight indigo, muted champagne, silver-lilac accents",
+    "homeSections": [
+      "Full-width illustrated Hero and actual account wallet state",
+      "Observed activity counters from APIs",
+      "Four-step onboarding",
+      "Seven illustrated functional destinations",
+      "Agent Atlas and Realm OS explanatory panels",
+      "Season Zero launch campaign and referral invitation",
+      "Real-only Explorer leaderboard, active Guild preview and missions",
+      "Live FAQs and assisted walkthrough"
+    ],
+    "chapterVisuals": {
+      "explore": "compass",
+      "missions": "scroll",
+      "guilds": "guild_art",
+      "build": "construct",
+      "rewards": "treasure",
+      "market": "merchant",
+      "atlas": "agent_evidence",
+      "os": "autonomous_work_packet"
+    },
+    "accessibility": [
+      "Account dropdown with sign-in, sign-out, profile, rewards, wallet links",
+      "Native keyboard-accessible FAQs",
+      "Modal guided onboarding with close and Escape",
+      "Responsive top navigation and mobile overflow control"
+    ],
+    "evidence": {
+      "homeScoreboard": "/api/genesis/leaderboard?scope=real",
+      "guilds": "/api/guilds",
+      "status": "live server readback",
+      "syntheticScoresExcluded": true,
+      "tokenIssued": false
+    },
+    "qa": {
+      "unitAndIntegration": "CI PASS 2026-11-16",
+      "desktopAndMobileBrowser": "Chromium PASS 2026-11-16",
+      "liveScreenshots": "GitHub Actions artifact",
+      "claim": "No fabricated user counts or earnings"
+    }
   }
 }
