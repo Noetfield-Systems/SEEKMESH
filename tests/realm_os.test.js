@@ -9,7 +9,7 @@ function fixture(){
  db.exec("CREATE TABLE submissions(id INTEGER PRIMARY KEY AUTOINCREMENT,state TEXT,category TEXT,reviewed_at TEXT,created_at TEXT);");
  db.exec("CREATE TABLE autonomy_jobs(id INTEGER PRIMARY KEY,status TEXT,last_error TEXT);");
  db.exec("CREATE TABLE autonomy_audits(id INTEGER PRIMARY KEY,status TEXT);");
- db.exec("CREATE TABLE autonomy_candidates(id INTEGER PRIMARY KEY,state TEXT);");
+ db.exec("CREATE TABLE autonomy_candidates(id INTEGER PRIMARY KEY,state TEXT,url TEXT,name TEXT,description TEXT,category TEXT,score INTEGER,last_seen_at TEXT,http_status INTEGER);");
  db.exec("CREATE TABLE realm_guilds(id INTEGER PRIMARY KEY);");
  db.exec("CREATE TABLE realm_guild_members(id INTEGER PRIMARY KEY);");
  db.exec("CREATE TABLE realm_guild_posts(id INTEGER PRIMARY KEY,status TEXT);");
