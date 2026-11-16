@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
   "date": "2026-11-15",
   "project": "SEEKMESH",
   "brand": "The Web3 Discovery Realm",
@@ -36,7 +36,9 @@
     "guilds/membership/posts",
     "autonomy coordinator",
     "editorial approval and spotlight redemption",
-    "partnership inquiry"
+    "partnership inquiry",
+    "Embedded Realm OS (10 logical roles, goals, packets, weekly expeditions)",
+    "EIP-4361 wallet-native EOA login"
   ],
   "units": {
     "xp": {
@@ -61,8 +63,8 @@
     }
   },
   "chain": {
-    "currentWalletProof": "nonce-bound EIP-191 address verification",
-    "siweERC4361": "PLANNED",
+    "currentWalletProof": "EIP-191 wallet link and EIP-4361 EOA native login; ERC-1271 unsupported",
+    "siweERC4361": "LIVE_EOA_ONLY",
     "selectedSettlementChain": "NOT_SELECTED",
     "pilotCandidate": "Base",
     "tokenAddress": null,
@@ -124,7 +126,9 @@
     "docs/PROTOCOL_BLUEPRINT_V1.md",
     "docs/ECONOMY_V1.md",
     "docs/COMPETITORS_GTM_V1.md",
-    "docs/IMPLEMENTATION_LEDGER_V1.md"
+    "docs/IMPLEMENTATION_LEDGER_V1.md",
+    "docs/REALM_OS_V1.md",
+    "docs/WALLET_NATIVE_V1.md"
   ],
   "benchmarks": [
     "Axie Infinity / Ronin",
@@ -137,5 +141,14 @@
     "Galxe/Gravity transition"
   ],
   "status": "MASTER_STRATEGIC_SOURCE_NON_ONCHAIN",
-  "metricsAreFromLiveDataOnly": true
+  "metricsAreFromLiveDataOnly": true,
+  "realmsOS": {
+    "status": "LIVE_LOGICAL_COORDINATOR",
+    "roles": 10,
+    "defaultPulseMinutes": 5,
+    "independentPhysicalAgents": 0,
+    "launchPhases": 6,
+    "persistentEvidence": true,
+    "perWeekAutonomousExpedition": true
+  }
 }

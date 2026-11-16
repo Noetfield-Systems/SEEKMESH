@@ -1,5 +1,9 @@
 # SEEKMESH — Independent Web3 Discovery Realm
 
+**LIVE Realm OS:** [/os](https://seekmesh-web-production.up.railway.app/os) · [Founder Operator](/operator) · [Implementation](docs/REALM_OS_V1.md) · [Wallet-native SIWE](docs/WALLET_NATIVE_V1.md).
+
+Realm OS coordinates ten logical operating roles, six live-evidence phase gates, source-gathering expeditions, protected founder goals, receipts and the existing autonomy worker pool. **This is not ten concurrently running agent models or funded onchain economic activity.** Wallet-native EOA sign-in uses standard EIP-4361 nonce-bound signatures, not payments or a token claim.
+
 > **Canonical v1.0 specification (November 15, 2026):** [Master Strategy Library](docs/MASTER_INDEX.md) · [Whitepaper](docs/WHITEPAPER_V1.md) · [SSOT](spec/seekmesh.ssot.json) · [Web3 Economy](docs/ECONOMY_V1.md) · [Implementation Ledger](docs/IMPLEMENTATION_LEDGER_V1.md) · [Public Whitepaper](https://seekmesh-web-production.up.railway.app/whitepaper)
 
 **Identity:** Independent Web3-native discovery project. It is **not a Noetfield Systems product**. GitHub organization is technical code custody and does not imply a legal operating entity. Do not attach unrelated billing accounts. Wallet-funded campaigns and x402 stablecoin settlement are planned; no SEEK token or claim has launched.

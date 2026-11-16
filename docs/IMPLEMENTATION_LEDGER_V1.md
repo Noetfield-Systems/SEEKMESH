@@ -9,7 +9,7 @@ Legend: LIVE = deployed feature confirmed from code and earlier smoke tests; COD
 | Searchable source index and canonical links | LIVE | /api/resources, seeded records and review-based source additions |
 | Pseudonymous account and session | LIVE | /api/mesh/register, /api/mesh/login, /api/mesh/me |
 | Wallet address ownership verification | LIVE | nonce-bound EIP-191 proof linked to existing account; NOT SIWE login |
-| True ERC-4361 wallet sign-in / ERC-1271 support | DESIGNED | not demonstrated in connected code |
+| EIP-4361 SIWE EOA-first wallet sign-in | LIVE (EOA) | nonce-bound challenge, domain/chain/expiry checks, verified signature, session; separate test and live release verification |\n| ERC-1271 / ERC-6492 smart-wallet sign-in | DESIGNED | still unsupported in shipped EOA verifier |
 | XP and internal MESH Credits ledger | LIVE | first-party SQLite ledger, idempotent criteria |
 | Submit/approval/referral quests | LIVE | resource moderation, accepted sources grant XP/Credits |
 | Guild creation, join, short feed and abuse reports | LIVE | Guild data and moderation API, earlier GitHub/Railway smoke evidence |
@@ -37,7 +37,7 @@ A production smoke PASS validates currently checked routes, not every Web3 featu
 ## Immediate acceptance work
 P0 — Publication truth: remove CAD/Noetfield/Stripe service framing from public SEEKMESH Market; expose independent protocol thesis, stablecoin-funded mission direction with honest not-yet-active labels.
 P0 — Product proof: show source provenance and exact proof-based quests, accepted contribution counts and wallet linkage behavior.
-P1 — True wallet-native sign-in via SIWE, address/chain/session replay tests.
+P1 — Extend live EOA-only wallet-native SIWE to ERC-1271/ERC-6492 and secure cookie/session hardening; preserve passing replay/domain/chain tests.
 P1 — First funded, **small and fixed** USDC discovery mission: safe escrow, idempotent proof/reward, payout, refund and transaction receipt.
 P1 — x402 price challenge, signed payment, verified settlement and paid API response.
 P2 — Guild research sprints, project ownership attestation, optional onchain credentials.
@@ -45,3 +45,8 @@ P2 — Token, if justified by verified economic activity, after supply/fee/gover
 
 ## Decision gate that must NOT become an artificial launch blocker
 The live, non-money features can attract users now. Mainnet monetary claims cannot be made until corresponding real funding and wallet transactions exist; that is a truth condition rather than a broad "wait for completeness" rule. No need to postpone community discovery until token issue.
+
+## Realm OS v1 — 2026-11-15
+- **Embedded coordinator deployed in repository:** 10 logical agent capabilities, six proof-based phase measurements, founder goal control and workpacket evidence; one physical Railway service, no duplicate Company OS or separate cost center.
+- **Automated work:** 5-minute bounded pulse when service is running, weekly source expedition publication from measured category distribution, health/quality/community/crypto-readiness packets, source-scanned candidate feed clearly marked unverified.
+- **Not verified:** physical remote workers for each role, auto-editing code without an independently verified release runner, funded USDC missions, x402 completed payments, minted/tradable SEEK or real revenue. See docs/REALM_OS_V1.md.

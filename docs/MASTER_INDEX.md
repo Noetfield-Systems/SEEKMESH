@@ -10,7 +10,9 @@
 5. [Protocol & Product Blueprint](PROTOCOL_BLUEPRINT_V1.md) — backend graph, workflows, Web3 settlement, contracts, acceptance tests.
 6. [Web3 Economy](ECONOMY_V1.md) — actual XP/Credits, proposed SEEK, USDC funded campaigns, x402, incentives and risk.
 7. [Competitors & GTM](COMPETITORS_GTM_V1.md) — Axie, Pixels, Layer3, Zealy, Presearch, Galxe, DappRadar, Kaito, benchmarks and 7/30/90-day strategy.
-8. [Implementation & Evidence Ledger](IMPLEMENTATION_LEDGER_V1.md) — source-backed shipped versus designed versus unissued.
+8. [Realm OS execution system](REALM_OS_V1.md) — internal jobs, founder console, phases, and source-expedition telemetry.
+9. [Wallet-native EIP-4361](WALLET_NATIVE_V1.md) — independently signed wallet entry, one-use nonce and wallet limitations.
+10. [Implementation & Evidence Ledger](IMPLEMENTATION_LEDGER_V1.md) — source-backed shipped versus designed versus unissued.
 9. [Earlier historical design implementation](REALM_DESIGN_IMPLEMENTATION.md) — prior art/architecture notes; not authoritative on later economy.
 
 ### Decision hierarchy

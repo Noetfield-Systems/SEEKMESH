@@ -44,7 +44,7 @@ SEEKMESH autonomy dispatches work to specialized capabilities: crawler, fetcher,
 The first runtime is a centralized orchestrator using persistent SQLite and Railway, with optional distributed workers. Long-term permissionless curation or paid nodes require a verifiable workload and anti-Sybil scheme; token/node rewards must be paid from a controlled finite budget.
 
 ### 6. Identity and ownership
-The current live account is a pseudonymous handle/password with a durable off-chain record. The current wallet implementation proves control of a particular EVM address with a nonce-bound EIP-191 signature and associates it with an existing account. That is **not the same as standards-compliant ERC-4361 Sign-In With Ethereum**, independent wallet login or a smart-contract wallet session. Protocol roadmap: complete SIWE with domain/URI, chain, issued-at, expiration and nonce; EIP-1271 for smart accounts; opt-in verified project ownership; credential attestation for accepted discoveries. Wallet remains user-custodied; no private key is requested by SEEKMESH.
+SEEKMESH supports pseudonymous handle/password accounts, EIP-191 signed wallet linking and newly implemented **EOA-only ERC-4361 Sign-In With Ethereum** with domain/URI, chain, issued-at, expiration and one-use nonce checks. This permits wallet-first pseudonymous onboarding without a fiat account or wallet-custody requirement. **ERC-1271 smart-account signatures and verified project ownership remain unimplemented.** Next identity layers include compatible smart wallet verification, voluntary account merge and portable credentials. Wallet remains user-custodied; no private key is requested by SEEKMESH.
 
 ### 7. Three economically distinct units
 **XP:** off-chain, non-transferable contribution record; levels, recognition and access. **MESH Credits:** currently off-chain first-party, non-transferable consumable credits, awarded for accepted activity; redeemed for first-party visibility (20 credits for 7-day display of an approved owned source, six simultaneous slots). **SEEK:** a proposed, unissued protocol utility token. **No exchange rate, cash redemption, claim, guaranteed token airdrop, yield or rights to future token distribution exists.** These units must not share a wallet balance label.
@@ -79,7 +79,7 @@ Sources must respect owners' site crawl permissions and practical rate limits. D
 
 ### 14. Architecture and decentralization phases
 - **Live:** independent branded Web3 Realm UI; source search; manual/evaluated community submissions; pseudonymous accounts; XP/credit ledger; guild membership and posts; linked wallet ownership proof; founder console; autonomous discovery coordinator; revenue intent capture.
-- **Next:** standardized SIWE login, project ownership verification, richer evidence/version graph, quality-calibrated rankings, API provenance, search freshness, data portability.
+- **Next:** EIP-1271 smart-wallet SIWE support, project ownership verification, richer evidence/version graph, quality-calibrated rankings, API provenance, search freshness and data portability.
 - **Native commerce:** stablecoin treasury + mission escrow, x402 paid API, independently verifiable receipts, settlement/refund flows.
 - **Protocol expansion:** public node participation, governance, appropriate onchain credentials and optionally the SEEK utility token.
 
@@ -103,3 +103,6 @@ No real supply, weak search, inaccurate listings, empty guilds, inauthentic poin
 - Kaito post-to-earn end: https://www.coingecko.com/learn/what-is-kaito-earn-yap-points
 
 This whitepaper describes an evolving digital service and proposed protocol architecture. It is not an offer to sell securities, a claim of guaranteed returns, an audited smart-contract release or a guarantee of token distribution.
+
+### Implementation update — Embedded Realm OS
+Realm OS is now implemented in the same backend with ten logical operating roles, evidence-based goals, six phases, persisted workpackets/receipts and automatically published category discovery expeditions. Public status: `/api/os/status` and `/os`; founder-only operations: `/api/admin/os`. These coordinator roles share a physical runtime; they are not individual deployed AI worker instances or independently funded onchain agents. See [Realm OS architecture](REALM_OS_V1.md) and [SIWE wallet entry](WALLET_NATIVE_V1.md).
