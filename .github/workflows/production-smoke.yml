@@ -42,6 +42,11 @@ jobs:
                grep -q 'personal_sign' /tmp/seekmesh-frontend.js &&
                grep -q '/api/siwe/challenge' /tmp/seekmesh-frontend.js &&
                grep -q 'id="os"' /tmp/seekmesh-home.html &&
+               grep -q 'id="form-migrate"' /tmp/seekmesh-home.html &&
+               curl -fsS --max-time 15 "$BASE/launch-upgrades.js" -o /tmp/seekmesh-launch.js &&
+               grep -q 'fundWalletExpedition' /tmp/seekmesh-launch.js &&
+               curl -fsS --max-time 15 "$BASE/api/atlas" -o /tmp/seekmesh-atlas-api.json &&
+               jq -e '.agents|type=="array"' /tmp/seekmesh-atlas-api.json >/dev/null &&
                curl -fsS --max-time 15 "$BASE/api/os/status" -o /tmp/seekmesh-realm-os.json &&
                jq -e '.schema=="seekmesh.realm_os.v1" and .logicalAgentRoles==10 and .physicalOSAgents==0 and .tokenIssued==false and .usdcEscrowLive==false and (.x402PaymentsLive|type)=="boolean" and (.phases|length)==6' /tmp/seekmesh-realm-os.json >/dev/null &&
                curl -fsS --max-time 15 "$BASE/assets/realm-hero.webp" -o /tmp/realm-hero.webp; then
@@ -50,7 +55,7 @@ jobs:
             fi
             sleep 5
           done
-          if [ "$ready" -ne 1 ]; then echo "Production failed to expose latest Realm OS + SIWE EOA + Guild release"; exit 1; fi
+          if [ "$ready" -ne 1 ]; then echo "Production failed to expose v1.3 Realm migration/Atlas/market JS + SIWE release"; exit 1; fi
           set -x
           curl -fsS --max-time 20 "$BASE/" -o /tmp/seekmesh-home.html
           grep -q 'id="home"' /tmp/seekmesh-home.html
