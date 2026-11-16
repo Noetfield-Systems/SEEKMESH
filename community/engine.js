@@ -135,7 +135,7 @@ export class CommunityLayer {
     return {guilds:this.db.prepare('SELECT COUNT(*) n FROM realm_guilds').get().n,
       guildMemberships:this.db.prepare('SELECT COUNT(*) n FROM realm_guild_members').get().n,
       guildSignals:this.db.prepare("SELECT COUNT(*) n FROM realm_guild_posts WHERE status='visible'").get().n,
-      members:this.db.prepare('SELECT COUNT(*) n FROM mesh_members').get().n,
+      members:this.db.prepare('SELECT COUNT(*) n FROM mesh_members WHERE is_synthetic=0').get().n,
       pendingSources:this.db.prepare("SELECT COUNT(*) n FROM submissions WHERE state='pending'").get().n,
       approvedSources:this.db.prepare("SELECT COUNT(*) n FROM submissions WHERE state='approved'").get().n,
       sponsorInquiries:this.db.prepare('SELECT COUNT(*) n FROM mesh_sponsors').get().n,
