@@ -57,7 +57,7 @@ export class RealmSIWE{
    if(existing)memberId=Number(existing.member_id);
    else{
     const invited=String(invite||'').trim().toUpperCase().slice(0,32);
-    const ref=this.db.prepare('SELECT id FROM mesh_members WHERE referral_code=?').get(invited);
+    const ref=this.db.prepare('SELECT id FROM mesh_members WHERE referral_code=? AND is_synthetic=0').get(invited);
     const random=crypto.randomBytes(3).toString('hex');
     const handle='W_'+requested.slice(2,8).toLowerCase()+'_'+random;
     const salt=crypto.randomBytes(16).toString('hex');

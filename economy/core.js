@@ -25,6 +25,7 @@ export class MeshEconomy {
   return {...m,xp:x.xp,credits:x.credits,level:1+Math.floor(Math.sqrt(Math.max(0,x.xp)/80)),submissions:own,history:recent,token:{issued:false,claimable:false}};
  }
  session(id){
+  if(this.db.prepare('SELECT is_synthetic FROM mesh_members WHERE id=?').get(id)?.is_synthetic)throw Error('Synthetic customer journeys never issue a real session.');
   const token=crypto.randomBytes(32).toString('base64url');
   this.db.prepare("INSERT INTO mesh_sessions(token_hash,member_id,expires_at) VALUES(?,?,datetime('now','+30 days'))").run(digest(token),id);
   this.db.prepare("DELETE FROM mesh_sessions WHERE expires_at<datetime('now')").run();
@@ -42,7 +43,7 @@ export class MeshEconomy {
   if(password.length<12||password.length>128)return {error:'Use a 12–128 character password.'};
   if(!['Builder','Curator','Explorer','Agent Developer','Community','Partner'].includes(role))return {error:'Select a valid role.'};
   if(this.db.prepare('SELECT id FROM mesh_members WHERE handle=?').get(handle))return {error:'Handle taken.'};
-  const inviter=this.db.prepare('SELECT id FROM mesh_members WHERE referral_code=?').get(sanitize(b.invite,32).toUpperCase());
+  const inviter=this.db.prepare('SELECT id FROM mesh_members WHERE referral_code=? AND is_synthetic=0').get(sanitize(b.invite,32).toUpperCase());
   const salt=crypto.randomBytes(16).toString('hex');
   const passHash=crypto.scryptSync(password,salt,64).toString('hex');
   try{
@@ -52,7 +53,8 @@ export class MeshEconomy {
   }catch(e){if(e.message.includes('UNIQUE'))return {error:'Handle taken.'};throw e;}
  }
  login(b){
-  const m=this.db.prepare('SELECT id,password_hash,salt FROM mesh_members WHERE handle=?').get(sanitize(b.handle,60));
+  const m=this.db.prepare('SELECT id,password_hash,salt,is_synthetic FROM mesh_members WHERE handle=?').get(sanitize(b.handle,60));
+  if(m?.is_synthetic)return {error:'Synthetic test persona accounts cannot sign in.'};
   const attempt=crypto.scryptSync(String(b.password||'').slice(0,128),m?.salt||'0'.repeat(32),64).toString('hex');
   if(!m||!crypto.timingSafeEqual(Buffer.from(attempt,'hex'),Buffer.from(m.password_hash,'hex')))return {error:'Invalid credentials.'};
   return {ok:true,member:this.member(m.id),token:this.session(m.id)};
@@ -92,8 +94,8 @@ export class MeshEconomy {
    return {ok:true,member:this.member(id)};
   }catch(e){this.db.exec('ROLLBACK');throw e;}
  }
- leaderboard(){return this.db.prepare('SELECT m.handle,m.role,COALESCE(SUM(l.xp),0) xp FROM mesh_members m LEFT JOIN mesh_ledger l ON l.member_id=m.id GROUP BY m.id ORDER BY xp DESC,m.id ASC LIMIT 30').all();}
- stats(){return {nodes:this.db.prepare('SELECT COUNT(*) n FROM mesh_members').get().n,completedActions:this.db.prepare('SELECT COUNT(*) n FROM mesh_ledger WHERE xp>0').get().n,creditsIssued:this.db.prepare('SELECT COALESCE(SUM(credits),0) n FROM mesh_ledger WHERE credits>0').get().n,creditsSpent:-this.db.prepare('SELECT COALESCE(SUM(credits),0) n FROM mesh_ledger WHERE credits<0').get().n,spotlights:this.spotlights().length,tokenIssued:false};}
+ leaderboard(){return this.db.prepare('SELECT m.handle,m.role,COALESCE(SUM(l.xp),0) xp FROM mesh_members m LEFT JOIN mesh_ledger l ON l.member_id=m.id WHERE m.is_synthetic=0 GROUP BY m.id ORDER BY xp DESC,m.id ASC LIMIT 30').all();}
+ stats(){return {nodes:this.db.prepare('SELECT COUNT(*) n FROM mesh_members WHERE is_synthetic=0').get().n,completedActions:this.db.prepare('SELECT COUNT(*) n FROM mesh_ledger l JOIN mesh_members m ON m.id=l.member_id WHERE m.is_synthetic=0 AND l.xp>0').get().n,creditsIssued:this.db.prepare('SELECT COALESCE(SUM(l.credits),0) n FROM mesh_ledger l JOIN mesh_members m ON m.id=l.member_id WHERE m.is_synthetic=0 AND l.credits>0').get().n,creditsSpent:-this.db.prepare('SELECT COALESCE(SUM(l.credits),0) n FROM mesh_ledger l JOIN mesh_members m ON m.id=l.member_id WHERE m.is_synthetic=0 AND l.credits<0').get().n,spotlights:this.spotlights().length,tokenIssued:false};}
 
  partnerQueue(){
    return this.db.prepare(`SELECT s.*,
