@@ -14,7 +14,7 @@ export class RealmExecutor{
    "CREATE INDEX IF NOT EXISTS realm_os_artifact_by_packet ON realm_os_artifacts(packet_id)"
   ].join(';')+';');
  }
- supported(){return ['sync_atlas_mcp','daily_realm_report','publish_guild_expansion','repair_discovery_runtime'];}
+ supported(){return ['sync_atlas_mcp','probe_atlas_endpoints','probe_atlas_endpoints','probe_atlas_endpoints','daily_realm_report','publish_guild_expansion','repair_discovery_runtime'];}
  metrics(){return {executed:this.db.prepare("SELECT COUNT(*) n FROM realm_os_packets WHERE status='observed' AND executor_kind='deterministic'").get().n,queued:this.db.prepare("SELECT COUNT(*) n FROM realm_os_packets WHERE status='open' AND kind IN ('sync_atlas_mcp','daily_realm_report','publish_guild_expansion','repair_discovery_runtime')").get().n,failed:this.db.prepare("SELECT COUNT(*) n FROM realm_os_packets WHERE status='failed' AND executor_kind='deterministic'").get().n,artifacts:this.db.prepare('SELECT COUNT(*) n FROM realm_os_artifacts').get().n,executorsPhysical:0,networkBudgetMS:8000};}
  _writeArtifact(packet,kind,data,verification){
   const content=JSON.stringify(data),hash=crypto.createHash('sha256').update(content).digest('hex');
@@ -37,6 +37,10 @@ export class RealmExecutor{
       data=await this.atlas.syncMCP();
       if(data.error)throw Error(data.error);
       proof=data.skipped?'official_registry_recently_synced':'official_mcp_registry_response_persisted';
+     }else if(row.kind==='probe_atlas_endpoints'){
+      data=await this.atlas.autoProbe(1);
+      if(!data.ok)throw Error(data.error||'Atlas bounded probe failed');
+      proof='bounded_robots_aware_http_observation_not_security_audit';
      }else if(row.kind==='daily_realm_report'){
       const m=this.os.measures();
       data={date:new Date().toISOString().slice(0,10),index:m.resources,approved:m.accepted_sources,pending:m.pending_sources,guilds:m.guilds,explorers:m.members,sourceClicks7d:m.source_clicks_7d,partnershipInquiries:m.inquiries,settledCampaigns:0,x402Payments:this.paidProof?.publicStatus()?.verifiedSettledRequests||0};

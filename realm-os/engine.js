@@ -95,6 +95,7 @@ export class RealmOS{
    verified_x402_payments:this.countOptional("SELECT COUNT(*) n FROM native_x402_receipts"),
    imported_campaigns:this.countOptional("SELECT COUNT(*) n FROM realm_imports WHERE state='verified'"),
    atlas_entries:this.countOptional("SELECT COUNT(*) n FROM atlas_agents"),
+   atlas_observed_endpoints:this.countOptional("SELECT COUNT(*) n FROM atlas_agents WHERE endpoint_proof='http_responded'"),
    mcp_tool_calls_7d:this.countOptional("SELECT COALESCE(SUM(n),0) n FROM realm_mcp_tool_calls WHERE day>=date('now','-6 days')"),
    workers_online:a.connectedWorkers24h||0,
    physical_executors:a.activeExecutors||0,
@@ -213,6 +214,7 @@ export class RealmOS{
    if(m.flagged_signals>0)enqueue('moderate_guild_signals','guild','Review reports on guild signals','Evidence-backed moderation outcome, no automatic arbitrary bans.',70,'community:guild_signals',{reports:m.flagged_signals});
    if(m.failed_jobs>0||m.crawler_errors>0)enqueue('recover_discovery','quality','Diagnose '+m.failed_jobs+' failed source jobs and '+m.crawler_errors+' runtime errors','Retry only bounded eligible jobs, preserve crawl policy and error receipts.',90,'discovery:source_audits',{failed:m.failed_jobs,errors:m.crawler_errors});
    enqueue('sync_atlas_mcp','atlas','Synchronize verified metadata from the official MCP Registry','Persist source provenance, do not invent reliability or trading metrics.',43,null,{source:'official_registry'});
+   if(m.atlas_entries>0)enqueue('probe_atlas_endpoints','quality','Perform robots-aware bounded HTTP checks of declared MCP endpoints','At most five endpoint probes daily, HTTP/latency measured, no security endorsement.',44,null,{eligible:m.atlas_entries});
    enqueue('daily_realm_report','strategy','Build today\'s auditable discovery and participation intelligence snapshot','Create database-backed aggregate artifact and hash receipt.',39,null,{date:date()});
    enqueue('publish_guild_expansion','guild','Report verified campaign imports and guild recruitment opportunities','Produce auditable import+guild report without fake migration rewards.',38,null,{date:date()});
    if(m.failed_jobs>0)enqueue('repair_discovery_runtime','quality','Trigger bounded autonomy recheck after observed failures','Only the existing budgeted crawler may be ticked.',88,null,{failures:m.failed_jobs});
