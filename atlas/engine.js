@@ -80,6 +80,28 @@ export class AgentAtlas{
   this.db.prepare("UPDATE atlas_agents SET owner_proof='eip155_verified',updated_at=datetime('now') WHERE id=?").run(id);
   return {ok:true,id,chainId:row.chain_id,owner,registry:IDENTITY_REGISTRY[row.chain_id],verification:'onchain_ownerOf',securityAudited:false};
  }
+ async autoProbe(limit=1){
+  if(process.env.ATLAS_AUTO_PROBE==='false')return {ok:true,measured:0,reason:'disabled'};
+  if(!this.autonomy?.request)return {ok:false,measured:0,error:'Safe crawler unavailable'};
+  // Never run a blanket network scanner or treat availability as an audit.
+  const n=this.db.prepare("SELECT COUNT(*) n FROM atlas_agents WHERE origin='official_mcp_registry_v0.1' AND last_checked_at>=datetime('now','start of day')").get().n;
+  const slots=Math.max(0,5-n);
+  if(!slots)return {ok:true,measured:0,reason:'five_daily_http_observations_cap'};
+  const rows=this.db.prepare("SELECT id,endpoint FROM atlas_agents WHERE kind='mcp' AND origin='official_mcp_registry_v0.1' AND endpoint IS NOT NULL AND (last_checked_at IS NULL OR last_checked_at<datetime('now','-7 days')) ORDER BY CASE WHEN last_checked_at IS NULL THEN 0 ELSE 1 END, id ASC LIMIT ?").all(Math.min(slots,Math.max(1,Math.min(2,Number(limit)||1))));
+  const outputs=[];
+  for(const row of rows){
+   let checked;
+   try{checked=await this.probe(row.id)}
+   catch(e){checked={error:clean(e.message,100)};}
+   if(checked.error){
+    this.db.prepare("UPDATE atlas_agents SET endpoint_proof='probe_error',http_status=NULL,last_checked_at=datetime('now'),updated_at=datetime('now') WHERE id=?").run(row.id);
+    outputs.push({id:row.id,status:'probe_error',evidence:'safe_fetch_error',detail:clean(checked.error,120)});
+   }else{
+    outputs.push({id:row.id,status:checked.status,latencyMs:checked.latencyMs,evidence:'actual_bounded_http_request_not_security_audit'});
+   }
+  }
+  return {ok:true,measured:outputs.length,results:outputs,remainingToday:Math.max(0,slots-outputs.length),securityAudited:false};
+ }
  async probe(id){
   const row=this.db.prepare('SELECT * FROM atlas_agents WHERE id=?').get(Number(id));if(!row)return {error:'Agent missing.'};
   if(!row.endpoint)return {error:'No declared endpoint.'};
