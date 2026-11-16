@@ -26,3 +26,5 @@ Machine-readable SSOT → implementation ledger for live claims → whitepaper f
 - **World:** unique companion series, guild campaign pages and playable quests with action receipts, not fake game activity.
 
 11. [Onchain Escrow and Foundry Tests](ONCHAIN_ESCROW_V1.md) — funded stablecoin campaigns, unique proof payouts and sponsor refunds, code and tests only.
+
+12. [Seven upgrades: Web3-native launch v1.3](LAUNCH_V1_3.md) — migration, owner proof, Agent Atlas, x402 payments, escrow deploy, Realm OS executor, Farcaster association and proof conditions.

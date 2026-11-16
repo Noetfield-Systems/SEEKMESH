@@ -1,0 +1,50 @@
+name: SEEKMESH Base Sepolia escrow deployment
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    environment: testnet
+    steps:
+      - uses: actions/checkout@v4
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+      - name: Verify escrow invariants
+        run: forge test -vv
+      - name: Deploy dedicated SEEKMESH funded testnet signer
+        env:
+          BASE_SEPOLIA_RPC_URL: ${{ secrets.BASE_SEPOLIA_RPC_URL }}
+          SEEKMESH_TESTNET_DEPLOYER_KEY: ${{ secrets.SEEKMESH_TESTNET_DEPLOYER_KEY }}
+          SEEKMESH_TREASURY_ADDRESS: ${{ secrets.SEEKMESH_TREASURY_ADDRESS }}
+        run: |
+          set -euo pipefail
+          for name in BASE_SEPOLIA_RPC_URL SEEKMESH_TESTNET_DEPLOYER_KEY SEEKMESH_TREASURY_ADDRESS; do
+            if [ -z "$(printenv "$name" || true)" ]; then
+              echo "::error::Missing independent SEEKMESH secret: $name"
+              exit 1
+            fi
+          done
+          CHAIN="$(cast chain-id --rpc-url "$BASE_SEPOLIA_RPC_URL")"
+          test "$CHAIN" = "84532" || { echo "::error::Wrong RPC chain"; exit 1; }
+          USDC="0x036CbD53842c5426634e7929541eC2318f3dCF7e"
+          forge create contracts/ExpeditionEscrow.sol:ExpeditionEscrow \
+            --rpc-url "$BASE_SEPOLIA_RPC_URL" \
+            --private-key "$SEEKMESH_TESTNET_DEPLOYER_KEY" \
+            --constructor-args "$USDC" "$SEEKMESH_TREASURY_ADDRESS" \
+            --broadcast --json > deploy-result.json
+          ADDRESS="$(jq -r '.deployedTo // empty' deploy-result.json)"
+          [[ "$ADDRESS" =~ ^0x[0-9a-fA-F]{40}$ ]] || { echo "::error::No deployed address"; exit 1; }
+          CODE="$(cast code "$ADDRESS" --rpc-url "$BASE_SEPOLIA_RPC_URL")"
+          test "$(printf %s "$CODE" | wc -c)" -gt 100 || { echo "::error::No onchain bytecode"; exit 1; }
+          echo "Base Sepolia escrow confirmed: $ADDRESS"
+          echo "Configure independent Railway service escrow address, chain 84532 and Base Sepolia RPC."
+          jq 'del(.privateKey,.secretKey)' deploy-result.json > deployment-public.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: seekmesh-base-sepolia-escrow
+          path: deployment-public.json
+          if-no-files-found: error

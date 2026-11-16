@@ -9,6 +9,10 @@ on:
       - 'wallet/**'
       - 'public/terminal.js'
       - 'public/terminal.html'
+      - 'public/launch-upgrades.js'
+      - 'launch/**'
+      - 'atlas/**'
+      - 'native/**'
   workflow_dispatch:
   schedule:
     - cron: '17 */6 * * *'
@@ -39,7 +43,7 @@ jobs:
                grep -q '/api/siwe/challenge' /tmp/seekmesh-frontend.js &&
                grep -q 'id="os"' /tmp/seekmesh-home.html &&
                curl -fsS --max-time 15 "$BASE/api/os/status" -o /tmp/seekmesh-realm-os.json &&
-               jq -e '.schema=="seekmesh.realm_os.v1" and .logicalAgentRoles==10 and .physicalOSAgents==0 and .tokenIssued==false and .usdcEscrowLive==false and .x402PaymentsLive==false and (.phases|length)==6' /tmp/seekmesh-realm-os.json >/dev/null &&
+               jq -e '.schema=="seekmesh.realm_os.v1" and .logicalAgentRoles==10 and .physicalOSAgents==0 and .tokenIssued==false and .usdcEscrowLive==false and (.x402PaymentsLive|type)=="boolean" and (.phases|length)==6' /tmp/seekmesh-realm-os.json >/dev/null &&
                curl -fsS --max-time 15 "$BASE/assets/realm-hero.webp" -o /tmp/realm-hero.webp; then
               ready=1
               break
@@ -76,7 +80,7 @@ jobs:
           grep -q 'id="os-metrics"' /tmp/seekmesh-os.html
           grep -q 'id="os-expeditions"' /tmp/seekmesh-os.html
           grep -q 'id="os-signals"' /tmp/seekmesh-os.html
-          curl -fsS --max-time 20 "$BASE/api/os/status" | jq -e '.independentWeb3==true and .logicalAgentRoles==10 and .physicalOSAgents==0 and .tokenIssued==false and .x402PaymentsLive==false and (.roles|length)==10'
+          curl -fsS --max-time 20 "$BASE/api/os/status" | jq -e '.independentWeb3==true and .logicalAgentRoles==10 and .physicalOSAgents==0 and .tokenIssued==false and (.x402PaymentsLive|type)=="boolean" and (.roles|length)==10'
           curl -fsS --max-time 20 "$BASE/api/os/expeditions" | jq -e '.expeditions|length>=1'
           test "$(curl -sS -o /tmp/os-admin-anon.json -w '%{http_code}' --max-time 20 "$BASE/api/admin/os")" = "401"
           grep -q 'Unauthorized' /tmp/os-admin-anon.json
@@ -93,4 +97,34 @@ jobs:
           grep -q 'NOT ISSUED' /tmp/seekmesh-whitepaper.html
           curl -fsS --max-time 20 "$BASE/whitepaper.css" -o /tmp/seekmesh-whitepaper.css
           test "$(wc -c < /tmp/seekmesh-whitepaper.css)" -gt 1000
-          echo 'SEEKMESH REALM OS + SIWE + six phase goals + public expeditions + Web3 whitepaper smoke PASS'
+          # v1.3 live launch upgrades. These tests intentionally do not create real payments or user accounts.
+          curl -fsS --max-time 20 "$BASE/migrate" -o /tmp/seekmesh-migrate.html
+          grep -q 'id="form-migrate"' /tmp/seekmesh-migrate.html
+          grep -q 'id="migrate-claim"' /tmp/seekmesh-migrate.html
+          curl -fsS --max-time 20 "$BASE/atlas" -o /tmp/seekmesh-atlas.html
+          grep -q 'id="atlas-results"' /tmp/seekmesh-atlas.html
+          grep -q 'id="form-atlas-agent"' /tmp/seekmesh-atlas.html
+          curl -fsS --max-time 20 "$BASE/launch-upgrades.js" -o /tmp/seekmesh-launch.js
+          grep -q 'fundWalletExpedition' /tmp/seekmesh-launch.js
+          curl -fsS --max-time 20 "$BASE/api/migrate" | jq -e '.campaigns|type=="array"'
+          curl -fsS --max-time 20 "$BASE/api/atlas" | jq -e '.agents|type=="array"'
+          curl -fsS --max-time 20 "$BASE/api/native/campaigns" | jq -e '.campaigns|type=="array"'
+          curl -fsS --max-time 20 "$BASE/api/native/x402/status" | jq -e '.protocol=="x402-v2" and .priceMicroUSDC==50000 and (.verifiedSettledRequests|type)=="number"'
+          curl -fsS --max-time 20 "$BASE/api/proof/preview?id=1" | jq -e '.availablePaidReport==true'
+          test "$(curl -sS -o /tmp/seekmesh-no-payment.json -w '%{http_code}' --max-time 20 "$BASE/api/proof/premium?id=1")" = "503" || {
+            # Once an independent receiver is configured, unpaid requests are 402, never 200.
+            test "$(curl -sS -o /tmp/seekmesh-no-payment.json -w '%{http_code}' --max-time 20 "$BASE/api/proof/premium?id=1")" = "402"
+          }
+          test "$(curl -sS -o /tmp/seekmesh-no-login.json -w '%{http_code}' --max-time 20 "$BASE/api/migrate/mine")" = "401"
+          test "$(curl -sS -o /tmp/seekmesh-no-admin.json -w '%{http_code}' --max-time 20 "$BASE/api/admin/atlas/sync" -X POST -H 'Content-Type: application/json' --data '{}')" = "401"
+          curl -fsS --max-time 20 "$BASE/.well-known/farcaster.json" | jq -e '.miniapp.name=="SEEKMESH" and (.miniapp.iconUrl|endswith(".png"))'
+          curl -fsS --max-time 20 "$BASE/api/farcaster/status" | jq -e '(.associated|type)=="boolean"'
+          for asset in icon splash social; do
+            curl -fsS --max-time 20 "$BASE/assets/seekmesh-$asset.png" -o "/tmp/seekmesh-$asset.png"
+            test "$(wc -c < "/tmp/seekmesh-$asset.png")" -gt 5000
+          done
+          curl -fsS --max-time 20 "$BASE/api/os/expeditions" | jq -e '.expeditions|length>0'
+          curl -fsS --max-time 20 "$BASE/expedition/1" -o /tmp/seekmesh-expedition.html
+          grep -q 'fc:miniapp' /tmp/seekmesh-expedition.html
+          echo 'SEEKMESH v1.3 native Web3 launch: migrate + Atlas + x402 + OS + Farcaster smoke PASS'
+

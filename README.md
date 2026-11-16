@@ -1,5 +1,11 @@
 # SEEKMESH — Independent Web3 Discovery Realm
 
+**v1.3 Web3 launch surfaces:** [Quest Rescue](https://seekmesh-web-production.up.railway.app/migrate) · [Agent Atlas](https://seekmesh-web-production.up.railway.app/atlas) · [Realm OS](https://seekmesh-web-production.up.railway.app/os) · [Native Market](https://seekmesh-web-production.up.railway.app/market) · [Farcaster Manifest](https://seekmesh-web-production.up.railway.app/.well-known/farcaster.json) · [Launch Configuration](docs/LAUNCH_V1_3.md).
+
+The migration imports public quest descriptions into PRIVATE drafts and requires project-domain TXT verification to publish. The Atlas distinguishes catalog listing, self-declared data and real chain ownership; Realm OS executes bounded deterministic jobs with receipts. x402 payment and escrow contract code exist but **no independent receiver/treasury/contract or real paid receipt is verified**; code readiness is not monetary launch. This project is INDEPENDENT from Noetfield billing.
+
+
+
 **LIVE Realm OS:** [/os](https://seekmesh-web-production.up.railway.app/os) · [Founder Operator](/operator) · [Implementation](docs/REALM_OS_V1.md) · [Wallet-native SIWE](docs/WALLET_NATIVE_V1.md).
 
 Realm OS coordinates ten logical operating roles, six live-evidence phase gates, source-gathering expeditions, protected founder goals, receipts and the existing autonomy worker pool. **This is not ten concurrently running agent models or funded onchain economic activity.** Wallet-native EOA sign-in uses standard EIP-4361 nonce-bound signatures, not payments or a token claim.

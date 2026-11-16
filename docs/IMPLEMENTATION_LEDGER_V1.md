@@ -57,3 +57,17 @@ The live, non-money features can attract users now. Mainnet monetary claims cann
 - Real deployment, treasury addresses, USDC mission funding, verifier operation and confirmed payout: **NOT YET DEPLOYED / 0 real transactions**.
 - x402 paid API and merchant wallet: **NOT DEPLOYED / 0 paid requests**.
 - Trusted GitHub source auto-indexing: **CODED / bounded**, conservatively selected from source+HTTP evidence and limited to three daily; successful source inclusion is not a security certification. See Realm OS docs.
+
+## v1.3 — Seven upgrade release evidence
+
+| Upgrade | Deployment evidence | Remaining external proof |
+|---|---|---|
+| Galxe Rescue | LIVE /migrate owner-verified CSV drafts, DNS TXT proof, public verified campaign pages | First actual importing project; old XP/rewards/users never ported |
+| USDC Escrow | Foundry 6/6 PASS, direct wallet approve/fund flow, chain receipt indexing, Base Sepolia deployment Action committed | Independent signer, gas, chain deployment, funded sponsor tx, payout/refund receipts |
+| Agent Trust Atlas | LIVE /atlas, official MCP metadata sync executor, ERC-8004 self-reported vs ownerOf proof, x402 agent declarations | Registry sync counts, actual owner verified and meaningful endpoint checks |
+| x402 paid Proof API | LIVE gated endpoint, 0.05 USDC on Base; unpaid 402 when configured; signed verification/settlement and unique receipts | Independent USDC receiving address, facilitator-confirmed real paid request |
+| Autonomous Execution | Bounded real deterministic work kinds, 60s loop, 3 retries and SHA256 artifacts; no automatic fund signing | Real workload outcome/ROI beyond built-in reports and indexing |
+| Living Realm | Reactive live data pulse and richer Atlas/Migration cards using existing original fantasy art | Human retention, player feedback, quality visual E2E across browsers |
+| Farcaster | FIRST-PARTY 1024px icon + 512px splash + 1200x630 social; manifest and expedition share links | Signed JFS domain accountAssociation and Farcaster directory acceptance |
+
+**Payment revenue:** 0 independently verified paid requests. **Onchain escrow payments:** 0 verified funding/payout txs at inspection. **SEEK token:** unissued. No Stripe or unrelated billing.
