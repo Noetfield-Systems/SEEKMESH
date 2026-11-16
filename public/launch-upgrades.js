@@ -13,13 +13,17 @@
   if(!el('migrate-results'))return;
   try{
    const publicOut=await load('/api/migrate');
-   el('migrate-results').innerHTML=publicOut.campaigns.length?publicOut.campaigns.map(c=>card(c.project,'Project domain verified: '+c.owner_domain+' · '+c.quests+' imported historical quest descriptions','<a href="/migrate?campaign='+Number(c.id)+'" class="small-link">View expedition →</a>')).join(''):'<div class="realm-panel">No verified imported campaigns yet. Be the first project owner to bring a real expedition.</div>';
+   el('migrate-results').innerHTML=publicOut.campaigns.length?publicOut.campaigns.map(c=>card(c.project,'Project domain verified: '+c.owner_domain+' · '+c.quests+' imported historical quest descriptions','<a href="/migrate?campaign='+Number(c.id)+'" class="small-link">View expedition →</a>'+(c.guild_slug?' <a href="/guilds?guild='+encodeURIComponent(c.guild_slug)+'" class="small-link">Visit Guild ↗</a>':''))).join(''):'<div class="realm-panel">No verified imported campaigns yet. Be the first project owner to bring a real expedition.</div>';
    if(state.token){
     const mine=await load('/api/migrate/mine');
-    el('migrate-mine').innerHTML=mine.imports.length?mine.imports.map(x=>card(x.project,x.state.toUpperCase()+' · '+x.quests+' tasks · '+x.owner_domain,x.state==='draft'?'<p class="tiny-note">If the verification challenge was lost, create a new import with a new campaign URL. Do not disclose your challenge publicly.</p>':'<span class="launch-status success">Verified domain</span>')).join(''):'<p class="tiny-note">Your imports will appear here.</p>';
+    el('migrate-mine').innerHTML=mine.imports.length?mine.imports.map(x=>card(x.project,x.state.toUpperCase()+' · '+x.quests+' tasks · '+x.owner_domain,x.state==='draft'?'<p class="tiny-note">Keep the original DNS TXT challenge for verification. Historical rewards are never copied.</p>':'<span class="launch-status success">Verified domain</span>'+(x.guild_slug?'<p><a href="/guilds?guild='+encodeURIComponent(x.guild_slug)+'">Open linked Guild ↗</a></p>':'<button class="btn btn-gold" data-migrate-guild="'+x.id+'">Create / Link Founder Guild ↗</button>')+(x.quests===0?'<p>No quest rows yet—attach the original CSV below.</p>':''))).join(''):'<p class="tiny-note">Your imports will appear here.</p>';
+    const attach=el('migrate-attach');
+    if(attach)attach.hidden=!mine.imports.some(x=>x.quests===0);
+    const select=el('migrate-add-id');
+    if(select)select.innerHTML=mine.imports.filter(x=>x.quests===0).map(x=>'<option value="'+Number(x.id)+'">'+safe(x.project)+' · #'+Number(x.id)+'</option>').join('');
    }else el('migrate-mine').innerHTML='<p>Sign in using a wallet or account to create a campaign draft.</p>';
    const campaign=new URLSearchParams(location.search).get('campaign');
-   if(campaign&&/^\d+$/.test(campaign)){const found=await load('/api/migrate/'+campaign).catch(()=>null);if(found)el('migrate-detail').innerHTML=card(found.project,'Verified domain '+found.owner_domain+' · No legacy reward claims transferred.',found.quests.map(q=>'<div class="launch-row"><b>'+safe(q.title)+'</b><p>'+safe(q.description)+'</p><a href="'+safe(q.action_url)+'" target="_blank" rel="noopener noreferrer">Original task source ↗</a></div>').join(''));}
+   if(campaign&&/^\d+$/.test(campaign)){const found=await load('/api/migrate/'+campaign).catch(()=>null);if(found)el('migrate-detail').innerHTML=card(found.project,'Verified domain '+found.owner_domain+' · No legacy reward claims transferred.',(found.quests.length?found.quests.map(q=>'<div class="launch-row"><b>'+safe(q.title)+'</b><p>'+safe(q.description)+'</p><a href="'+safe(q.action_url)+'" target="_blank" rel="noopener noreferrer">Original task source ↗</a></div>').join(''):'<p>No quest descriptions imported yet. Project ownership is verified; the original CSV may be attached later.</p>')+(found.guild_slug?'<p><a class="small-link" href="/guilds?guild='+encodeURIComponent(found.guild_slug)+'">Meet the verified project Guild →</a></p>':''));}
   }catch(e){el('migrate-results').textContent='Cannot load campaign index: '+e.message;}
  }
  async function agentAtlas(){
@@ -111,6 +115,12 @@
    try{const out=await post('/api/migrate/import',data);el('migrate-claim').innerHTML=claimHTML(out);form.reset();toast('Private import draft saved. Verify project domain to publish.');await migration()}
    catch(e){toast(e.message)}finally{if(button)button.disabled=false}
   }
+  if(ev.target.id==='form-migrate-quests'){
+   ev.preventDefault();
+   const id=Number(el('migrate-add-id').value),csv=el('migrate-add-csv').value;
+   if(!id||!state.token){toast('Sign in and select one of your campaign drafts.');return;}
+   try{const out=await post('/api/migrate/quests',{id,csv});toast('Original quest descriptions attached: '+out.added);el('migrate-add-csv').value='';await migration()}catch(e){toast(e.message)}
+  }
   if(ev.target.id==='form-atlas-agent'){
    ev.preventDefault();if(!state.token){toast('Link and verify your wallet before claiming an agent.');return;}
    try{const out=await post('/api/atlas/register',Object.fromEntries(new FormData(ev.target)));toast('Agent recorded: '+out.state+'. No false security certification.');ev.target.reset();await agentAtlas()}
@@ -120,6 +130,8 @@
  document.addEventListener('click',async ev=>{
   const verify=ev.target.closest('[data-migrate-verify]');
   if(verify){try{const out=await post('/api/migrate/verify',{id:Number(verify.dataset.migrateVerify)});toast(out.state==='verified'?'Project ownership verified. Expedition is now public.':'Verification pending.');await migration()}catch(e){toast(e.message)}}
+  const guild=ev.target.closest('[data-migrate-guild]');
+  if(guild){try{const out=await post('/api/migrate/guild',{id:Number(guild.dataset.migrateGuild)});toast('Verified project Guild linked: '+out.slug);await migration()}catch(e){toast(e.message)}}
   const share=ev.target.closest('[data-expedition-share]');
   if(share){const id=share.dataset.expeditionShare;shareLink(location.origin+'/expedition/'+encodeURIComponent(id),'SEEKMESH Discovery Expedition')}
   const query=ev.target.closest('[data-atlas-refresh]');if(query)agentAtlas();
