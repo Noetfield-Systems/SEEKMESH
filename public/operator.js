@@ -31,14 +31,34 @@ function renderLaunch(launch,submissions,sponsors,guilds,sourceReports){
  $('source-report-count').textContent=quality.length+' OPEN REPORTS';
  $('source-reports').innerHTML=quality.slice(0,80).map(r=>`<div class="item"><div class="item-header"><span>${esc(r.resource)} · ${esc(r.reason)}</span><span class="tag">OPEN</span></div><p><a href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">${esc(r.url)}</a></p><p>${esc(r.detail||'No additional details.')}</p><small>Reported by @${esc(r.reporter)} · ${esc(r.created_at)}</small><div class="mini-actions"><button data-report-decision="resolved" data-report-id="${r.id}">RESOLVED ✓</button><button class="negative" data-report-decision="dismissed" data-report-id="${r.id}">DISMISS ×</button></div></div>`).join('')||'<div class="empty">No open resource reports.</div>';
 }
+
+/* Embedded Realm OS: founder-only controls with evidence, no invented completed work. */
+function renderRealmOS(payload){
+ const st=payload.status||{};
+ $('os-ops-state').textContent=st.enabled?(st.paused?'PAUSED':st.schedulerRunning?'SCHEDULING':'STARTING'):'DISABLED';
+ $('os-pause').disabled=st.paused;$('os-resume').disabled=!st.paused;
+ $('os-ops-stats').innerHTML=metric(st.logicalAgentRoles||0,'LOGICAL OS ROLES')+
+  metric(st.physicalOSAgents||0,'INDEPENDENT OS PROCESSES')+
+  metric(st.metrics?.resources||0,'SOURCE NODES')+
+  metric(st.queues?.open||0,'OPEN PACKETS')+
+  metric(st.completedPulses||0,'COMPLETED PULSES')+
+  metric(st.lastPulse||'—','LAST OS PULSE')+
+  metric(st.liveWeb3SettlementsVerified||0,'VERIFIED ONCHAIN SETTLEMENTS');
+ $('os-ops-goals').innerHTML=(st.goals||[]).map(g=>'<div class="item"><div class="item-header"><span>'+esc(g.title)+'</span><span class="tag">'+esc(g.progress)+'%</span></div><p>'+esc(g.actual)+' / '+esc(g.target)+' · '+esc(g.metric)+'</p><small>Owner: '+esc(g.owner_agent)+' · Phase '+esc(g.phase)+'</small><div class="mini-actions"><button data-os-goal="'+esc(g.goal_id)+'" data-target="'+g.target+'">CHANGE TARGET ↗</button></div></div>').join('')||'<div class="empty">No goals defined</div>';
+ $('os-ops-roles').innerHTML=(payload.agents||[]).map(a=>'<div class="item"><div class="item-header"><span>'+esc(a.display_name)+'</span><span class="tag">'+esc(a.state)+'</span></div><p>'+esc(a.mission)+'</p><small>'+esc(a.department)+' · '+esc(a.queuedPackets)+' active packets · '+(a.physicalProcess?'independent process':'logical role')+'</small></div>').join('')||'<div class="empty">No roles defined</div>';
+ $('os-ops-packets').innerHTML=(payload.packets||[]).filter(p=>p.status==='open').slice(0,70).map(p=>'<div class="item"><div class="item-header"><span>#'+p.id+' · '+esc(p.kind)+'</span><span class="tag">P'+(100-p.priority)+'</span></div><p>'+esc(p.task)+'</p><small>'+esc(p.agent_id)+' · Accept: '+esc(p.acceptance)+'</small><div class="mini-actions"><button data-os-evidence="'+p.id+'">RECORD EVIDENCE ↗</button></div></div>').join('')||'<div class="empty">No open work packets. Scheduled monitoring remains active.</div>';
+ $('os-ops-receipts').innerHTML=(payload.receipts||[]).slice(0,50).map(p=>'<div class="item"><div class="item-header"><span>'+esc(p.agent_id)+' / '+esc(p.kind)+'</span><small>'+esc(p.created_at)+'</small></div><p>'+esc(p.details)+'</p><small>VERIFICATION: '+esc(p.verification)+'</small></div>').join('')||'<div class="empty">No receipts yet. First OS pulse writes evidence.</div>';
+}
+
 async function refresh(){
  if(!key)return;
  try{render(await api('/api/admin/autonomy'));}catch(e){notice(e.message);return;}
  const extras=await Promise.allSettled([
   api('/api/admin/launch'),api('/api/admin/submissions'),
-  api('/api/admin/mesh/sponsors'),api('/api/admin/guild-posts'),api('/api/admin/source-reports')]);
+  api('/api/admin/mesh/sponsors'),api('/api/admin/guild-posts'),api('/api/admin/source-reports'),api('/api/admin/os')]);
  const val=extras.map(x=>x.status==='fulfilled'?x.value:null);
- renderLaunch(...val);
+ renderLaunch(...val.slice(0,5));
+ if(val[5])renderRealmOS(val[5]);
  if(extras.some(x=>x.status==='rejected'))notice('Launch detail partially unavailable; operational controls remain available.');
 }
 $('login').addEventListener('submit',async e=>{e.preventDefault();key=$('admin-key').value;try{await refresh();if(!latest)throw new Error('Authentication failed');$('login-panel').hidden=true;$('dashboard').hidden=false;$('admin-key').value='';polling=setInterval(refresh,30000);}catch(e){key='';notice(e.message);}});
@@ -81,5 +101,23 @@ $('partner-inquiries').addEventListener('click',async e=>{
  if(!evidence)return;
  try{await api('/api/admin/mesh/sponsor-action',{id,state:state.trim(),nextAction:nextAction.trim(),dueDate:dueDate.trim(),owner:owner.trim(),evidence:evidence.trim()});
  await refresh();notice('Partner follow-up saved with an auditable next action.');}
+ catch(err){notice(err.message);}
+});
+
+for(const action of ['pulse','pause','resume'])$('os-'+action).addEventListener('click',async()=>{
+ try{await api('/api/admin/os/control',{action});await refresh();notice('Realm OS '+action+' recorded.');}
+ catch(e){notice(e.message);}
+});
+$('os-ops-goals').addEventListener('click',async e=>{
+ const target=e.target.closest('button[data-os-goal]');if(!target)return;
+ const input=prompt('New measured goal target (1 to 1,000,000)',target.dataset.target);if(input===null)return;
+ try{const n=Number(input);await api('/api/admin/os/control',{action:'goal',goalId:target.dataset.osGoal,target:n});await refresh();notice('Goal target updated.');}
+ catch(err){notice(err.message);}
+});
+$('os-ops-packets').addEventListener('click',async e=>{
+ const button=e.target.closest('button[data-os-evidence]');if(!button)return;
+ const message=prompt('Evidence note (at least 30 characters). This is an OPERATOR ATTESTATION, not independent verification:');
+ if(message===null)return;
+ try{await api('/api/admin/os/control',{action:'evidence',packetId:Number(button.dataset.osEvidence),evidence:message});await refresh();notice('Work packet attested; verification is not claimed.');}
  catch(err){notice(err.message);}
 });
