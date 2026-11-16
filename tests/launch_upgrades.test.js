@@ -76,3 +76,35 @@ test('Mission settlements require a configured independently verified onchain es
  assert.equal(engine.list().length,0);
  db.close();
 });
+
+test('Galxe URL-only path creates zero fabricated quests; imported descriptions attach later and verified project owns Guild',()=>{
+ const db=dbFixture();
+ db.exec("CREATE TABLE realm_guilds(id INTEGER PRIMARY KEY AUTOINCREMENT,slug TEXT UNIQUE,name TEXT,founder_id INTEGER)");
+ const community={
+  create(member,data){
+   assert.equal(data.category,'Communities');
+   const slug='verified-project-guild';
+   db.prepare('INSERT INTO realm_guilds(slug,name,founder_id) VALUES(?,?,?)').run(slug,data.name,member.id);
+   return {ok:true,slug};
+  }
+ };
+ const flow=new CampaignMigration(db,{community}),owner={id:7};
+ const out=flow.import(owner,{project:'Real Explorer Guild',campaignUrl:'https://app.galxe.com/quest/real-guild',projectUrl:'https://real-project.example'});
+ assert.equal(out.ok,true);
+ assert.equal(out.questCount,0);
+ assert.equal(out.importMode,'campaign_link_only');
+ assert.equal(flow.public().length,0);
+ assert.ok(flow.linkGuild(owner,out.id).error,'ownership required before Guild linking');
+ const added=flow.addQuests(owner,{id:out.id,csv:'title,description,action_url\nExplore Project,Read real project documentation,https://real-project.example/docs'});
+ assert.equal(added.ok,true);assert.equal(added.added,1);
+ assert.equal(flow.addQuests(owner,{id:out.id,csv:'title,description,action_url\nAnother Task,Another useful description,https://real-project.example/another'}).ok,undefined);
+ db.prepare("UPDATE realm_imports SET state='verified',verified_at=datetime('now') WHERE id=?").run(out.id);
+ const linked=flow.linkGuild(owner,out.id);
+ assert.equal(linked.ok,true);
+ assert.equal(linked.guildUrl,'/guilds?guild=verified-project-guild');
+ assert.equal(flow.detail(out.id).guild_slug,'verified-project-guild');
+ assert.equal(flow.public()[0].quests,1);
+ assert.equal(flow.public()[0].guild_slug,'verified-project-guild');
+ assert.equal(flow.linkGuild(owner,out.id).existing,true);
+ db.close();
+});
