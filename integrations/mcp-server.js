@@ -33,7 +33,7 @@ export class SeekmeshMCP{
   return {window:'last_7_utc_days',toolCalls:totals.reduce((a,v)=>a+v.calls,0),byTool:totals,uniqueAgentsMeasured:false,paidRequests:this.paidProof.publicStatus().verifiedSettledRequests,notRevenue:'MCP usage is unbilled unless a separate x402 settlement receipt exists.'};
  }
  discover(){
-  return {resultType:'complete',protocolVersion:PROTOCOL,serverInfo:{name:'SEEKMESH Discovery Realm',version:'1.4.0',websiteUrl:this.baseURL},capabilities:{tools:{listChanged:false}},description:'Independent Web3-native source and Agent Trust Atlas; public read-only discovery plus separately paid x402 proof API'};
+  return {resultType:'complete',protocolVersion:PROTOCOL,serverInfo:{name:'SEEKMESH Discovery Realm',version:'1.4.1',websiteUrl:this.baseURL},capabilities:{tools:{listChanged:false}},description:'Independent Web3-native source and Agent Trust Atlas; public read-only discovery plus separately paid x402 proof API'};
  }
  async call(name,input={}){
   if(!input||typeof input!=='object'||Array.isArray(input))return toolError('Expected an argument object.');

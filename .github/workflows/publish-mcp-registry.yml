@@ -44,10 +44,24 @@ jobs:
           chmod +x ./mcp-publisher
       - name: OIDC authenticate as repository owner
         run: ./mcp-publisher login github-oidc
-      - name: Publish remote-only SEEKMESH server
+      - name: Read registry version for idempotent releases
+        id: previous
+        run: |
+          set -euo pipefail
+          NAME="$(jq -r '.name' server.json)"
+          VERSION="$(jq -r '.version' server.json)"
+          if curl -fsS --max-time 15 'https://registry.modelcontextprotocol.io/v0.1/servers?search=seekmesh&version=latest' \
+            | jq -e --arg name "$NAME" --arg version "$VERSION" 'any(.servers[]?; .server.name==$name and .server.version==$version)' >/dev/null; then
+            echo 'exists=true' >> "$GITHUB_OUTPUT"
+            echo "Official registry already contains $NAME@$VERSION; no duplicate write"
+          else
+            echo 'exists=false' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Publish new remote-only SEEKMESH version
+        if: steps.previous.outputs.exists != 'true'
         run: ./mcp-publisher publish server.json
       - name: Read back official MCP Registry entry
         run: |
           set -euo pipefail
           curl -fsS --max-time 15 'https://registry.modelcontextprotocol.io/v0.1/servers?search=seekmesh&version=latest' \
-            | jq -e '[.servers[]?.server.name]|any(.=="io.github.Noetfield-Systems/seekmesh")'
+            | jq -e --arg name "$(jq -r '.name' server.json)" --arg version "$(jq -r '.version' server.json)" 'any(.servers[]?; .server.name==$name and .server.version==$version)'

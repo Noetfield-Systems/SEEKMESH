@@ -3,7 +3,7 @@
   "name": "io.github.Noetfield-Systems/seekmesh",
   "title": "SEEKMESH Discovery Realm",
   "description": "Web3 discovery and Agent Trust Atlas: source-linked MCP tools, real guilds and x402 proof quotes.",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "remotes": [
     {
       "type": "streamable-http",
