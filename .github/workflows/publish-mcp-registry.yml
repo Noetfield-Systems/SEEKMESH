@@ -4,6 +4,7 @@ on:
     paths:
       - 'server.json'
       - 'integrations/mcp-server.js'
+      - 'server.js'
       - '.github/workflows/publish-mcp-registry.yml'
   workflow_dispatch:
 permissions:
