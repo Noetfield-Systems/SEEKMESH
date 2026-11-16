@@ -87,7 +87,7 @@ export class RealmOS{
    guild_members:this.count('SELECT COUNT(*) n FROM realm_guild_members'),
    guild_signals:this.count("SELECT COUNT(*) n FROM realm_guild_posts WHERE status='visible'"),
    flagged_signals:this.count("SELECT COUNT(*) n FROM realm_guild_reports"),
-   members:this.count('SELECT COUNT(*) n FROM mesh_members'),
+   members:this.count('SELECT COUNT(*) n FROM mesh_members WHERE is_synthetic=0'),
    linked_wallets:this.count('SELECT COUNT(*) n FROM mesh_wallet_links'),
    inquiries:this.count('SELECT COUNT(*) n FROM mesh_sponsors'),
    source_clicks_7d:this.count("SELECT COALESCE(SUM(count),0) n FROM realm_event_counts WHERE event='source_click' AND day>=date('now','-6 days')"),
