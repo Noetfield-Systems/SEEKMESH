@@ -218,4 +218,31 @@ test('E2E: starts, live data, search, invite, review, reputation, security and p
   assert.match(await share.text(),/fc:miniapp/);
  });
 
+ await t.test('MCP 2026-07-28: stateless agent discovery, paid quote only and required headers',async()=>{
+  const meta={'io.modelcontextprotocol/protocolVersion':'2026-07-28','io.modelcontextprotocol/clientCapabilities':{},'io.modelcontextprotocol/clientInfo':{name:'test-agent',version:'1.0.0'}};
+  const headers={'Accept':'application/json, text/event-stream','MCP-Protocol-Version':'2026-07-28'};
+  const packet=(id,method,params={})=>({jsonrpc:'2.0',id,method,params:{...params,_meta:meta}});
+  const list=await request('/mcp','POST',packet(1,'tools/list'),{...headers,'Mcp-Method':'tools/list'});
+  assert.equal(list.status,200);
+  assert.equal(list.body.result.resultType,'complete');
+  assert.ok(list.body.result.tools.some(x=>x.name==='search_sources'));
+  assert.ok(list.body.result.tools.some(x=>x.name==='get_source_proof_quote'));
+  const search=await request('/mcp','POST',packet(2,'tools/call',{name:'search_sources',arguments:{query:'MCP'}}),{...headers,'Mcp-Method':'tools/call','Mcp-Name':'search_sources'});
+  assert.equal(search.status,200);assert.ok(search.body.result.structuredContent.resources.length>=1);
+  assert.match(search.body.result.structuredContent.provenance,/NOT financial endorsements/);
+  const quote=await request('/mcp','POST',packet(3,'tools/call',{name:'get_source_proof_quote',arguments:{source_id:1}}),{...headers,'Mcp-Method':'tools/call','Mcp-Name':'get_source_proof_quote'});
+  assert.equal(quote.status,200);assert.equal(quote.body.result.structuredContent.paymentDelivered,false);
+  assert.equal(quote.body.result.structuredContent.price,'0.05 USDC');
+  assert.equal(quote.body.result.structuredContent.paymentReady,false);
+  const wrong=await request('/mcp','POST',packet(4,'tools/list'),{...headers,'Mcp-Method':'tools/call'});
+  assert.equal(wrong.status,400);assert.equal(wrong.body.error.message,'HeaderMismatch');
+  const older=await request('/mcp','POST',packet(5,'tools/list'),{...headers,'MCP-Protocol-Version':'2025-11-25','Mcp-Method':'tools/list'});
+  assert.equal(older.status,400);assert.equal(older.body.error.message,'UnsupportedProtocolVersionError');
+  const cross=await request('/mcp','POST',packet(6,'tools/list'),{...headers,'Mcp-Method':'tools/list','Origin':'https://untrusted-site.example'});
+  assert.equal(cross.status,403);assert.equal(cross.body.error.message,'CrossOriginRequestBlocked');
+  const get=await request('/mcp');assert.equal(get.status,405);
+  const machine=await request('/api/agent.json');assert.equal(machine.status,200);
+  assert.match(machine.body.mcp.url,/\/mcp$/);
+ });
+
 });
