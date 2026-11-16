@@ -7,6 +7,7 @@ import {GenesisSeason} from '../economy/genesis.js';
 function fixture(){
  const db=new DatabaseSync(':memory:');
  db.exec("CREATE TABLE submissions(id INTEGER PRIMARY KEY AUTOINCREMENT,name TEXT,url TEXT,state TEXT,created_at TEXT)");
+ db.exec("CREATE TABLE resources(id INTEGER PRIMARY KEY AUTOINCREMENT,name TEXT,url TEXT,description TEXT,category TEXT)");
  const mesh=new MeshEconomy(db),genesis=new GenesisSeason(db,mesh);
  return {db,mesh,genesis};
 }
