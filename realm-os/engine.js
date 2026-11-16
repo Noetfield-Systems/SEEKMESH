@@ -147,6 +147,33 @@ export class RealmOS{
   if(row?.status==='observed')this.audit(row.agent_id,'packet.observed',{kind:row.kind,...evidence},verification,packetId);
   return row;
  }
+ autoCurate(){
+  if(process.env.REALM_OS_AUTO_CURATE==='false')return {checked:0,published:0,reason:'disabled'};
+  if(!this.autonomy?.approveCandidate)return {checked:0,published:0,reason:'unavailable'};
+  const today=date(),used=this.count("SELECT COUNT(*) n FROM resources WHERE source='autonomous-reviewed' AND date(approved_at)=?",today);
+  const remaining=Math.max(0,3-used);
+  if(!remaining)return {checked:0,published:0,reason:'daily_cap'};
+  const list=this.db.prepare("SELECT c.* FROM autonomy_candidates c JOIN autonomy_sources src ON src.id=c.source_id WHERE c.state='ready' AND c.http_status=200 AND c.score>=90 AND c.origin='autonomous' AND src.kind='github' AND src.enabled=1 ORDER BY c.score DESC,c.id DESC LIMIT 30").all();
+  let checked=0,published=0;
+  for(const c of list){
+   if(published>=remaining)break;checked++;
+   let u,e;try{u=new URL(c.url);e=JSON.parse(c.evidence||'{}')}catch{continue}
+   if(u.protocol!=='https:'||u.hostname!=='github.com'||!/^\/[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+\/?$/.test(u.pathname)||u.search||u.hash)continue;
+   if((c.name||'').length<5||(c.description||'').length<40)continue;
+   const d=e.discovered||{},v=e.verification||{};
+   if(d.provenance!=='github-public-api'||Number(d.stars)<50||v.httpStatus!==200||v.noindex!==false||v.robotsAllowed!==true||Number(v.score)<90)continue;
+   const last=Date.parse(d.updatedAt||''),verified=Date.parse(v.checkedAt||'');
+   if(!Number.isFinite(last)||last>Date.now()+86400000||Date.now()-last>180*86400000)continue;
+   if(!Number.isFinite(verified)||verified>Date.now()+300000||Date.now()-verified>48*3600000)continue;
+   if(this.db.prepare('SELECT 1 FROM resources WHERE url=?').get(c.url))continue;
+   let approved;try{approved=this.autonomy.approveCandidate(c.id,'approve','realm-os:trusted-source-policy')}catch{continue}
+   if(!approved?.ok)continue;
+   this.db.prepare("UPDATE resources SET source='autonomous-reviewed' WHERE url=? AND source='autonomous-approved'").run(c.url);
+   this.audit('proof','source.auto_indexed',{candidateId:c.id,url:c.url,score:c.score,stars:d.stars,verifiedAt:v.checkedAt},'github_api_and_http_only_not_security_audit');
+   published++;
+  }
+  return {checked,published,policy:'github_only_recent_score90_stars50_http200_cap3',securityAudited:false};
+ }
  chooseCategory(){
   const rows=this.db.prepare('SELECT category,COUNT(*) n FROM resources GROUP BY category').all();
   const map=new Map(rows.map(x=>[x.category,x.n]));
@@ -160,8 +187,9 @@ export class RealmOS{
   if(!force&&before&&Date.now()-Date.parse(before.replace(' ','T')+'Z')<Math.min(120000,this.interval-1000))return {ok:true,executed:false,reason:'recent_pulse'};
   this.inside=true;
   try{
+   const autoCurated=this.autoCurate();
    const m=this.measures();
-   const out={packetsCreated:0,expeditionsCreated:0,reviewCandidates:m.review_candidates,memberReviews:m.pending_sources,autonomyPhysicalExecutors:m.physical_executors};
+   const out={packetsCreated:0,expeditionsCreated:0,autoIndexedSources:autoCurated.published,reviewCandidates:m.review_candidates,memberReviews:m.pending_sources,autonomyPhysicalExecutors:m.physical_executors};
    const enqueue=(kind,agent,task,accept,priority,goal,ev)=>{
     const r=this.schedule(kind,agent,task,accept,{key:kind+':'+date(),priority,goal,evidence:ev});
     if(r.inserted)out.packetsCreated++;return r;

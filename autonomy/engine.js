@@ -237,7 +237,7 @@ export class AutonomyEngine {
   }
   start(){if(!this.enabled||this.timer)return;this.timer=setInterval(()=>this.tick(),this.tickMs);this.timer.unref();setImmediate(()=>this.tick());}
   stop(){if(this.timer)clearInterval(this.timer);this.timer=null;}
-  approveCandidate(id,decision){
+  approveCandidate(id,decision,actor='admin'){
     if(!['approve','reject'].includes(decision))return {error:'INVALID_DECISION'};
     this.db.exec('BEGIN IMMEDIATE');
     try{
@@ -249,7 +249,7 @@ export class AutonomyEngine {
         this.db.prepare('INSERT INTO resources(name,url,description,category,tags,source,contributor) VALUES(?,?,?,?,?,?,?)').run(c.name,c.url,c.description||`Discovered via ${c.origin}`,c.category,'Autonomous discovery','autonomous-approved','');
       }
       this.db.prepare("UPDATE autonomy_candidates SET state=?,reviewed_at=datetime('now') WHERE id=?").run(decision==='approve'?'approved':'rejected',id);
-      this.db.exec('COMMIT');this.log('candidate.reviewed',{id,decision},'admin');return {ok:true,id,decision};
+      this.db.exec('COMMIT');this.log('candidate.reviewed',{id,decision},actor);return {ok:true,id,decision};
     }catch(e){this.db.exec('ROLLBACK');throw e;}
   }
   addSource(input){
