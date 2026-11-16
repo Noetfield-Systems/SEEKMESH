@@ -59,6 +59,7 @@ async function refresh(){
  const val=extras.map(x=>x.status==='fulfilled'?x.value:null);
  renderLaunch(...val.slice(0,5));
  if(val[5])renderRealmOS(val[5]);
+ await loadGenesisAdmin();
  if(extras.some(x=>x.status==='rejected'))notice('Launch detail partially unavailable; operational controls remain available.');
 }
 $('login').addEventListener('submit',async e=>{e.preventDefault();key=$('admin-key').value;try{await refresh();if(!latest)throw new Error('Authentication failed');$('login-panel').hidden=true;$('dashboard').hidden=false;$('admin-key').value='';polling=setInterval(refresh,30000);}catch(e){key='';notice(e.message);}});
@@ -120,4 +121,31 @@ $('os-ops-packets').addEventListener('click',async e=>{
  if(message===null)return;
  try{await api('/api/admin/os/control',{action:'evidence',packetId:Number(button.dataset.osEvidence),evidence:message});await refresh();notice('Work packet attested; verification is not claimed.');}
  catch(err){notice(err.message);}
+});
+
+
+function renderGenesisAdmin(payload){
+ const real=payload.real||{},demo=payload.synthetic||{};
+ $('genesis-admin-stats').innerHTML=
+  metric(real.realMembers??0,'REAL EXPLORERS')+
+  metric(real.realDropsCredited??0,'REAL GENESIS DROPS')+
+  metric(real.qualifiedReferrals??0,'QUALIFIED REAL REFERRALS')+
+  metric(demo.accounts??0,'SYNTHETIC PERSONAS · EXCLUDED')+
+  metric((demo.runs||[]).length,'RECENT QA RUNS');
+ $('genesis-admin-actions').innerHTML=(payload.realActions||[]).map(x=>'<div class="item"><div class="item-header"><span>'+esc(x.reason)+'</span><strong>'+x.n+'</strong></div></div>').join('')||'<div class="empty">No accepted real actions yet.</div>';
+ $('genesis-admin-runs').innerHTML=(demo.runs||[]).map(x=>'<div class="item"><div class="item-header"><span>QA Run #'+x.id+'</span><b>'+x.agents+' demo personas</b></div><p>'+x.steps+' recorded scripted checkpoints</p><small>'+esc(x.created_at)+' · SYNTHETIC ONLY</small></div>').join('')||'<div class="empty">No QA runs yet.</div>';
+ $('genesis-admin-personas').innerHTML=(demo.leaderboard||[]).map((x,i)=>'<div class="item"><div class="item-header"><span>#'+(i+1)+' '+esc(x.handle)+'</span><strong>'+x.drops+' TEST DROPS</strong></div><small>'+esc(x.role)+' · '+x.actions+' fictional reward events</small></div>').join('')||'<div class="empty">QA sandbox has no personas.</div>';
+ $('genesis-admin-events').innerHTML=(demo.events||[]).slice(0,60).map(x=>'<div class="item"><div class="item-header"><span>'+esc(x.handle)+' · '+esc(x.step)+'</span><small>'+esc(x.created_at)+'</small></div><p>'+esc(x.result)+'</p></div>').join('')||'<div class="empty">No simulated checkpoints saved.</div>';
+}
+async function loadGenesisAdmin(){
+ if(!key)return;
+ try{renderGenesisAdmin(await api('/api/admin/genesis/dashboard'));}
+ catch(e){notice('Genesis QA metrics unavailable: '+e.message);}
+}
+$('genesis-refresh').addEventListener('click',loadGenesisAdmin);
+$('genesis-simulate').addEventListener('click',async()=>{
+ try{const result=await api('/api/admin/genesis/simulate',{count:12});
+  notice('Completed '+result.personas+' SYNTHETIC customer journeys, '+result.steps+' saved checkpoints; 0 real users added.');
+  await loadGenesisAdmin();
+ }catch(e){notice(e.message);}
 });
