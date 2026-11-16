@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { DatabaseSync } from 'node:sqlite';
 import { AutonomyEngine } from './autonomy/engine.js';
 import { MeshEconomy } from './economy/core.js';
+import { GenesisSeason } from './economy/genesis.js';
 import { CommunityLayer } from './community/engine.js';
 import { WalletLink } from './wallet/link.js';
 import { RealmOS } from './realm-os/engine.js';
@@ -79,6 +80,7 @@ const insertStarter = db.prepare('INSERT OR IGNORE INTO resources (name,url,desc
 for (const item of starter) insertStarter.run(...item, 'editorial');
 const autonomy=new AutonomyEngine(db);
 const mesh=new MeshEconomy(db);
+const genesis=new GenesisSeason(db,mesh);
 const community=new CommunityLayer(db);
 const wallet=new WalletLink(db,SITE_URL);
 const realmOS=new RealmOS(db,{autonomy,mesh,community});
@@ -187,6 +189,10 @@ export const server=http.createServer(async(req,res)=>{
     if(p==='/api/admin/source-reports'){if(!authenticate(req))return j(res,401,{error:'Unauthorized'});return j(res,200,{reports:community.sourceReports()});}
     if(p==='/api/admin/launch'){if(!authenticate(req))return j(res,401,{error:'Unauthorized'});return j(res,200,community.launchReport());}
     if(p==='/api/admin/guild-posts'){if(!authenticate(req))return j(res,401,{error:'Unauthorized'});return j(res,200,{posts:community.moderation()});}
+    if(p==='/api/genesis/status')return j(res,200,genesis.public());
+    if(p==='/api/genesis/me'){const member=mesh.auth(req.headers.authorization);return j(res,member?200:401,member?{genesis:genesis.member(member.id)}:{error:'Sign in to see saved Drops.'});}
+    if(p==='/api/genesis/leaderboard')return j(res,200,genesis.board(u.searchParams.get('scope')==='simulation'?'simulation':'real'));
+    if(p==='/api/admin/genesis/dashboard'){if(!authenticate(req))return j(res,401,{error:'Unauthorized'});return j(res,200,genesis.dashboard());}
     if(p==='/api/mesh/stats')return j(res,200,mesh.stats());
     if(p==='/api/mesh/leaderboard')return j(res,200,{members:mesh.leaderboard()});
     if(p==='/api/mesh/spotlights')return j(res,200,{spotlights:mesh.spotlights()});
@@ -217,7 +223,7 @@ export const server=http.createServer(async(req,res)=>{
     if(safePublicFile(p,res))return;return j(res,404,{error:'Not found'});
   }
   if(req.method!=='POST')return j(res,405,{error:'Method not allowed'});
-  if(!['/mcp','/api/join','/api/submit','/api/privacy-request','/api/admin/review','/api/migrate/import','/api/migrate/quests','/api/migrate/guild','/api/migrate/verify','/api/atlas/register','/api/atlas/verify','/api/native/campaigns/funding-receipt','/api/native/campaigns/payout-receipt','/api/admin/os/execute','/api/admin/atlas/sync','/api/admin/atlas/probe','/api/admin/os/control','/api/internal/os/tick','/api/admin/autonomy/control','/api/admin/autonomy/source','/api/admin/autonomy/candidate','/api/siwe/challenge','/api/siwe/verify','/api/mesh/register','/api/mesh/login','/api/mesh/logout','/api/mesh/checkin','/api/mesh/orientation','/api/mesh/submit','/api/mesh/redeem','/api/mesh/sponsor','/api/guilds/create','/api/guilds/join','/api/guilds/leave','/api/guilds/post','/api/guilds/report','/api/admin/guild-post','/api/admin/source-report','/api/admin/mesh/sponsor-action','/api/mesh/source-report','/api/mesh/wallet-challenge','/api/mesh/wallet-verify','/api/mesh/wallet-unlink','/api/telemetry','/api/internal/autonomy/tick','/api/internal/autonomy/claim','/api/internal/autonomy/report'].includes(p))return j(res,404,{error:'Not found'});
+  if(!['/mcp','/api/join','/api/submit','/api/privacy-request','/api/admin/review','/api/migrate/import','/api/migrate/quests','/api/migrate/guild','/api/migrate/verify','/api/atlas/register','/api/atlas/verify','/api/native/campaigns/funding-receipt','/api/native/campaigns/payout-receipt','/api/admin/genesis/simulate','/api/admin/os/execute','/api/admin/atlas/sync','/api/admin/atlas/probe','/api/admin/os/control','/api/internal/os/tick','/api/admin/autonomy/control','/api/admin/autonomy/source','/api/admin/autonomy/candidate','/api/siwe/challenge','/api/siwe/verify','/api/mesh/register','/api/mesh/login','/api/mesh/logout','/api/mesh/checkin','/api/mesh/orientation','/api/mesh/submit','/api/mesh/redeem','/api/mesh/sponsor','/api/guilds/create','/api/guilds/join','/api/guilds/leave','/api/guilds/post','/api/guilds/report','/api/admin/guild-post','/api/admin/source-report','/api/admin/mesh/sponsor-action','/api/mesh/source-report','/api/mesh/wallet-challenge','/api/mesh/wallet-verify','/api/mesh/wallet-unlink','/api/telemetry','/api/internal/autonomy/tick','/api/internal/autonomy/claim','/api/internal/autonomy/report'].includes(p))return j(res,404,{error:'Not found'});
   if(p.startsWith('/api/admin/')&&!authenticate(req))return j(res,401,{error:'Unauthorized'});
   if(['/api/internal/autonomy/tick','/api/internal/os/tick'].includes(p)&&!cronAuthenticate(req))return j(res,401,{error:'Unauthorized'});
   if(['/api/internal/autonomy/claim','/api/internal/autonomy/report'].includes(p)&&!workerAuthenticate(req))return j(res,401,{error:'Unauthorized'});
@@ -230,6 +236,7 @@ export const server=http.createServer(async(req,res)=>{
     if(p==='/api/internal/os/tick')return j(res,200,realmOS.pulse({force:true}));
     if(p==='/api/admin/os/control'){const out=realmOS.control(b);return j(res,out.error?422:200,out);}
     if(p==='/api/admin/os/execute'){const out=await executor.run(3);return j(res,200,out);}
+    if(p==='/api/admin/genesis/simulate'){const out=genesis.simulate(b.count);return j(res,out.error?422:200,out);}
     if(p==='/api/native/campaigns/funding-receipt'||p==='/api/native/campaigns/payout-receipt'){
       const member=mesh.auth(req.headers.authorization);if(!member)return j(res,401,{error:'Sign in to submit chain transaction proof.'});
       if(limited(req,'chain-tx-verification',8))return j(res,429,{error:'Chain proof rate limited.'});
@@ -362,4 +369,4 @@ export const server=http.createServer(async(req,res)=>{
     }
   }catch(e){return j(res,e instanceof SyntaxError?400:e.message==='Payload too large'?413:500,{error:e instanceof SyntaxError?'Invalid JSON':e.message==='Payload too large'?'Payload too large':'Request failed.'});}
 });
-if(process.env.NODE_ENV!=='test')server.listen(PORT,'0.0.0.0',()=>{console.log(`SEEKMESH listening on ${PORT}`);autonomy.start();realmOS.start();executor.start();});
+if(process.env.NODE_ENV!=='test')server.listen(PORT,'0.0.0.0',()=>{if(process.env.GENESIS_DEMO_SEED!=='false'){try{const qa=genesis.seedOnce();if(qa.ok)console.log('GENESIS 12 synthetic QA personas; not real users');}catch(e){console.error('GENESIS QA: '+e.message)}}console.log(`SEEKMESH listening on ${PORT}`);autonomy.start();realmOS.start();executor.start();});
