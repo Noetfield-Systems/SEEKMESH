@@ -11,7 +11,7 @@ permissions:
 jobs:
   smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 8
     steps:
       - name: Verify new Founder Realm, art, discovery and economy in production
         env:
@@ -30,13 +30,17 @@ jobs:
                curl -fsS --max-time 15 "$BASE/terminal.js" -o /tmp/seekmesh-frontend.js &&
                grep -q '/api/mesh/wallet-challenge' /tmp/seekmesh-frontend.js &&
                grep -q 'personal_sign' /tmp/seekmesh-frontend.js &&
+               grep -q '/api/siwe/challenge' /tmp/seekmesh-frontend.js &&
+               grep -q 'id="os"' /tmp/seekmesh-home.html &&
+               curl -fsS --max-time 15 "$BASE/api/os/status" -o /tmp/seekmesh-realm-os.json &&
+               jq -e '.schema=="seekmesh.realm_os.v1" and .logicalAgentRoles==10 and .physicalOSAgents==0 and .tokenIssued==false and .usdcEscrowLive==false and .x402PaymentsLive==false and (.phases|length)==6' /tmp/seekmesh-realm-os.json >/dev/null &&
                curl -fsS --max-time 15 "$BASE/assets/realm-hero.webp" -o /tmp/realm-hero.webp; then
               ready=1
               break
             fi
             sleep 5
           done
-          if [ "$ready" -ne 1 ]; then echo "Production failed to expose expected verified wallet+guild release"; exit 1; fi
+          if [ "$ready" -ne 1 ]; then echo "Production failed to expose latest Realm OS + SIWE EOA + Guild release"; exit 1; fi
           set -x
           curl -fsS --max-time 20 "$BASE/" -o /tmp/seekmesh-home.html
           grep -q 'id="home"' /tmp/seekmesh-home.html
@@ -62,6 +66,15 @@ jobs:
           curl -fsS --max-time 20 "$BASE/market" -o /tmp/seekmesh-market.html
           grep -q 'id="market"' /tmp/seekmesh-market.html
           curl -fsS --max-time 20 "$BASE/api/autonomy/status" | jq -e '.enabled==true'
+          curl -fsS --max-time 20 "$BASE/os" -o /tmp/seekmesh-os.html
+          grep -q 'id="os-metrics"' /tmp/seekmesh-os.html
+          grep -q 'id="os-expeditions"' /tmp/seekmesh-os.html
+          grep -q 'id="os-signals"' /tmp/seekmesh-os.html
+          curl -fsS --max-time 20 "$BASE/api/os/status" | jq -e '.independentWeb3==true and .logicalAgentRoles==10 and .physicalOSAgents==0 and .tokenIssued==false and .x402PaymentsLive==false and (.roles|length)==10'
+          curl -fsS --max-time 20 "$BASE/api/os/expeditions" | jq -e '.expeditions|length>=1'
+          test "$(curl -sS -o /tmp/os-admin-anon.json -w '%{http_code}' --max-time 20 "$BASE/api/admin/os")" = "401"
+          grep -q 'Unauthorized' /tmp/os-admin-anon.json
+          grep -q '/api/siwe/verify' /tmp/seekmesh-frontend.js
           test "$(curl -sS -o /tmp/workpackets-anon.json -w '%{http_code}' --max-time 20 "$BASE/api/admin/mesh/workpackets")" = "401"
           grep -q 'error' /tmp/workpackets-anon.json
           curl -fsS --max-time 20 "$BASE/market" -o /tmp/seekmesh-market-pilot.html
@@ -74,4 +87,4 @@ jobs:
           grep -q 'NOT ISSUED' /tmp/seekmesh-whitepaper.html
           curl -fsS --max-time 20 "$BASE/whitepaper.css" -o /tmp/seekmesh-whitepaper.css
           test "$(wc -c < /tmp/seekmesh-whitepaper.css)" -gt 1000
-          echo 'SEEKMESH WEB3 whitepaper + independent market + guild + wallet smoke PASS'
+          echo 'SEEKMESH REALM OS + SIWE + six phase goals + public expeditions + Web3 whitepaper smoke PASS'
