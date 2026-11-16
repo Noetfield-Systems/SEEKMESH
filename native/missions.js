@@ -62,6 +62,20 @@ export class NativeMissions{
  list(){
   return this.db.prepare("SELECT c.id,c.chain_id,c.escrow,c.campaign_id,c.sponsor,c.verifier,c.reward_budget,c.total_deposited,c.deadline,c.fee_bps,c.funding_txhash,c.state,(SELECT COUNT(*) FROM native_campaign_payouts p WHERE p.campaign_ref=c.id) verifiedPayouts FROM native_campaigns c ORDER BY id DESC LIMIT 60").all();
  }
+ async verifiedStatus(){
+  const out=this.status();
+  if(!out.configured)return {...out,codeVerified:false,configurationNote:'Independent escrow, verifier and RPC required.'};
+  try{
+   const rpc=out.chainId===8453?process.env.BASE_RPC_URL:process.env.BASE_SEPOLIA_RPC_URL;
+   const provider=new JsonRpcProvider(rpc,out.chainId,{staticNetwork:true});
+   const [code,tokenCode]=await Promise.race([
+    Promise.all([provider.getCode(out.escrow),provider.getCode(out.usdcToken)]),
+    new Promise((_,reject)=>setTimeout(()=>reject(Error('RPC timeout')),9000))
+   ]);
+   const ready=code.length>100&&tokenCode.length>100;
+   return {...out,configured:ready,codeVerified:ready,configurationNote:ready?'Escrow and USDC bytecode observed, contract still not security audited.':'Configured wallet address lacks verified contract or token bytecode.'};
+  }catch{return {...out,configured:false,codeVerified:false,configurationNote:'RPC bytecode check could not be completed.'}}
+ }
  status(){
   const c=this.config();
   return {escrow:c.escrow,verifier:c.verifier,usdcToken:c.token,fundSelector:selectorId('fund(uint256,uint16,uint64,address)').slice(0,10),feeBps:250,chainId:c.chainId,mode:c.mode,configured:c.ready,verifiedFundingTransactions:this.db.prepare('SELECT COUNT(*) n FROM native_campaigns').get().n,verifiedPayouts:this.db.prepare('SELECT COUNT(*) n FROM native_campaign_payouts').get().n,fulfilledCampaigns:this.db.prepare('SELECT COUNT(DISTINCT campaign_ref) n FROM native_campaign_payouts').get().n,tokenIssued:false};

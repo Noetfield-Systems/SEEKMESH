@@ -238,7 +238,7 @@ export class RealmOS{
    schema:'seekmesh.realm_os.v1',project:'SEEKMESH',independentWeb3:true,
    enabled:this.enabled,paused:!!pulse.paused,schedulerRunning:!!this.timer,
    logicalAgentRoles:NODES.length,physicalOSAgents:0,physicalDiscoveryExecutors:m.physical_executors,
-   logicalShardsAreProcesses:false,liveWeb3SettlementsVerified:m.settled_campaigns+m.verified_x402_payments,tokenIssued:false,usdcEscrowLive:!!this.nativeMissions?.config()?.ready,x402PaymentsLive:!!this.paidProof?.receiver(),execution:this.executor?.metrics()||{executed:0,queued:0},
+   logicalShardsAreProcesses:false,liveWeb3SettlementsVerified:m.settled_campaigns+m.verified_x402_payments,tokenIssued:false,usdcEscrowLive:m.settled_campaigns>0&&this.nativeMissions?.config()?.chainId===8453,x402PaymentsLive:m.verified_x402_payments>0,execution:this.executor?.metrics()||{executed:0,queued:0},
    lastPulse:pulse.last_pulse,lastFailure:pulse.last_failure,completedPulses:pulse.executions,
    queues:Object.fromEntries(packets.map(x=>[x.status,x.n])),goals:this.goals(),phases:this.phases(),
    expeditions:this.expedition(),metrics:m

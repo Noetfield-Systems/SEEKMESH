@@ -16,7 +16,7 @@ export class PaidProofAPI{
   try{return getAddress(process.env.SEEKMESH_USDC_RECEIVER||'')}catch{return null}
  }
  publicStatus(){
-  return {name:'SEEKMESH Proof Intelligence',protocol:'x402-v2',status:this.receiver()?'payable':'awaiting_independent_receiver_wallet',network:'eip155:8453',asset:USDC_BASE,priceUSDC:'0.05',priceMicroUSDC:50000,facilitator:this.facilitator,verifiedSettledRequests:this.db.prepare('SELECT COUNT(*) n FROM native_x402_receipts').get().n,note:'Only facilitator-confirmed settlements count; no simulated receipts.'};
+  return {name:'SEEKMESH Proof Intelligence',protocol:'x402-v2',status:this.receiver()?'receiver_configured_settlement_not_yet_proven':'awaiting_independent_receiver_wallet',network:'eip155:8453',asset:USDC_BASE,priceUSDC:'0.05',priceMicroUSDC:50000,facilitator:this.facilitator,verifiedSettledRequests:this.db.prepare('SELECT COUNT(*) n FROM native_x402_receipts').get().n,note:'Only facilitator-confirmed settlements count; no simulated receipts.'};
  }
  preview(id){
   const source=this.db.prepare('SELECT id,name,url,category,source,approved_at FROM resources WHERE id=?').get(Number(id));
@@ -43,7 +43,7 @@ export class PaidProofAPI{
   const receiver=this.receiver();
   if(!receiver)return error(res,503,{error:'Native Web3 receiver wallet not configured.',config:'SEEKMESH_USDC_RECEIVER',simulatedPayment:false,paidResultsDelivered:0});
   const uri=this.baseURL+'/api/proof/premium?id='+id;
-  const accepted={scheme:'exact',network:'eip155:8453',amount:'50000',asset:USDC_BASE,payTo:receiver,maxTimeoutSeconds:60,extra:{name:'USD Coin',version:'2',paymentFlow:'upfront'}};
+  const accepted={scheme:'exact',network:'eip155:8453',amount:'50000',asset:USDC_BASE,payTo:receiver,maxTimeoutSeconds:60,extra:{name:'USD Coin',version:'2'}};
   const reqBody={x402Version:2,resource:{url:uri,description:'SEEKMESH source-grounded proof intelligence report #'+id,mimeType:'application/json'},accepts:[accepted]};
   const payment=req.headers['payment-signature'];
   if(!payment){

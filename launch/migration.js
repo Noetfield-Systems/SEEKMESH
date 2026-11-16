@@ -66,7 +66,7 @@ export class CampaignMigration{
   let values;
   try{values=await Promise.race([dns.resolveTxt('_seekmesh.'+r.owner_domain),new Promise((_,fail)=>setTimeout(()=>fail(Error('timeout')),3500))]);}
   catch{return {error:'Project DNS TXT record not found yet; check propagation.'};}
-  if(!values.flat().some(x=>sha(x.trim())===r.claim_hash))return {error:'Incorrect project-owner DNS challenge.'};
+  if(!values.map(parts=>parts.join('')).some(x=>sha(x.trim())===r.claim_hash))return {error:'Incorrect project-owner DNS challenge.'};
   this.db.prepare("UPDATE realm_imports SET state='verified',verified_at=datetime('now') WHERE id=? AND state='draft'").run(r.id);
   return {ok:true,id:r.id,state:'verified',ownerDomain:r.owner_domain,priorBalancesImported:false};
  }
