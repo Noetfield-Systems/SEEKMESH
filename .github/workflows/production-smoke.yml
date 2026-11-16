@@ -3,6 +3,12 @@ on:
   push:
     paths:
       - '.github/workflows/production-smoke.yml'
+      - 'Dockerfile'
+      - 'server.js'
+      - 'realm-os/**'
+      - 'wallet/**'
+      - 'public/terminal.js'
+      - 'public/terminal.html'
   workflow_dispatch:
   schedule:
     - cron: '17 */6 * * *'
