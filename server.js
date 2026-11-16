@@ -112,6 +112,14 @@ function farcasterManifest(){
  return manifest;
 }
 function htmlEscape(text){return String(text??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function guildSocialCard(slug){
+ if(!/^[a-z0-9-]{3,80}$/.test(String(slug)))return null;
+ const g=community.guild(slug);if(!g)return null;
+ const title=htmlEscape(g.name+' — SEEKMESH Guild'),about=htmlEscape(g.about.slice(0,220));
+ const link=SITE_URL+'/guilds?guild='+encodeURIComponent(slug);
+ const embed={version:'1',imageUrl:SITE_URL+'/assets/seekmesh-social.png',button:{title:'Join Guild',action:{type:'launch_miniapp',name:'SEEKMESH',url:link}}};
+ return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+title+'</title><meta name="theme-color" content="#142c51"><meta property="og:title" content="'+title+'"><meta property="og:description" content="'+about+'"><meta property="og:image" content="'+SITE_URL+'/assets/seekmesh-social.png"><meta name="fc:miniapp" content="'+htmlEscape(JSON.stringify(embed))+'"><link rel="stylesheet" href="/whitepaper.css"></head><body><header class="bar"><div class="width header-inner"><a href="/">◇ SEEKMESH</a><a href="/whitepaper">Protocol ↗</a></div></header><main class="closing"><div class="width"><div class="kicker">REAL BUILDER COMMUNITY</div><h2>'+title+'</h2><p>'+about+'</p><p>'+Number(g.members)+' real members · '+Number(g.signals)+' public signals. No token or investment claims.</p><a class="gold" href="'+htmlEscape(link)+'">Enter this Guild ↗</a></div></main></body></html>';
+}
 function expeditionCard(id){
  const exp=realmOS.expedition().find(x=>Number(x.id)===Number(id));if(!exp)return null;
  const url=SITE_URL+'/expedition/'+exp.id,app=SITE_URL+'/os?expedition='+exp.id;
@@ -145,6 +153,10 @@ export const server=http.createServer(async(req,res)=>{
     if(p==='/api/health')return j(res,200,{status:'ok',database:'sqlite',version:'0.5.0'});
     if(p==='/.well-known/farcaster.json')return j(res,200,farcasterManifest(),{'cache-control':'public,max-age=300'});
     if(p==='/api/farcaster/status')return j(res,200,{manifestUrl:SITE_URL+'/.well-known/farcaster.json',associated:!!farcasterManifest().accountAssociation,domain:new URL(SITE_URL).hostname,publishing:'account association must be signed by the domain owner; unsigned metadata alone does not publish a Mini App'});
+    if(/^\/guild\/[a-z0-9-]{3,80}$/.test(p)){
+      const page=guildSocialCard(p.split('/').pop());if(!page)return j(res,404,{error:'Guild not found.'});
+      res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'public,max-age=60','x-content-type-options':'nosniff','content-security-policy':"default-src 'self'; style-src 'self'; img-src 'self'; script-src 'self'"});return res.end(page);
+    }
     if(/^\/expedition\/\d+$/.test(p)){const card=expeditionCard(p.split('/').pop());if(!card)return j(res,404,{error:'Expedition not found'});res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'public,max-age=60','x-content-type-options':'nosniff','content-security-policy':"default-src 'self'; style-src 'self'; img-src 'self'; script-src 'self'"});return res.end(card);}
 
     if(p==='/api/stats')return j(res,200,getStats());
