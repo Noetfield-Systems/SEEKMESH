@@ -14,6 +14,7 @@ export class MeshEconomy {
   CREATE TABLE IF NOT EXISTS mesh_sponsors(id INTEGER PRIMARY KEY AUTOINCREMENT,email TEXT NOT NULL,site TEXT NOT NULL,brief TEXT NOT NULL,plan TEXT NOT NULL,state TEXT NOT NULL DEFAULT 'new',created_at TEXT NOT NULL DEFAULT (datetime('now')));
   CREATE TABLE IF NOT EXISTS mesh_partner_actions(id INTEGER PRIMARY KEY AUTOINCREMENT, sponsor_id INTEGER NOT NULL, state TEXT NOT NULL, next_action TEXT NOT NULL, due_date TEXT, owner TEXT NOT NULL, evidence TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL DEFAULT (datetime('now')));
   CREATE INDEX IF NOT EXISTS mesh_partner_actions_due ON mesh_partner_actions(sponsor_id,due_date);`);
+  if(!db.prepare('PRAGMA table_info(mesh_members)').all().some(x=>x.name==='is_synthetic'))db.exec('ALTER TABLE mesh_members ADD COLUMN is_synthetic INTEGER NOT NULL DEFAULT 0');
  }
  grant(id,xp,credits,reason,key){return this.db.prepare('INSERT OR IGNORE INTO mesh_ledger(member_id,xp,credits,reason,once_key) VALUES(?,?,?,?,?)').run(id,xp,credits,reason,key).changes===1;}
  member(id){
