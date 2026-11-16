@@ -166,7 +166,7 @@ document.addEventListener('click',async e=>{
  const action=btn.dataset.guildAction,slug=btn.dataset.guildSlug||guildSlug;
  if(action==='open'){openGuild(slug);return;}
  if(action==='close'){$('guild-detail').hidden=true;guildSlug=null;return;}
- if(action==='share'){const url=location.origin+'/guilds?guild='+encodeURIComponent(slug);try{await navigator.clipboard.writeText(url);toast('Guild link copied.')}catch{toast(url)}return;}
+ if(action==='share'){const url=location.origin+'/guild/'+encodeURIComponent(slug);try{await navigator.clipboard.writeText(url);toast('Guild link copied.')}catch{toast(url)}return;}
  if(!state.member){state.pending='guild-create';openModal('auth');return;}
  try{
   if(action==='join'){await post('/api/guilds/join',{slug});trackEvent('guild_join');}
