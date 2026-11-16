@@ -98,3 +98,19 @@ test('Web3 independent whitepaper and no unrelated SaaS pricing in active market
  assert.equal(ssot.units.SEEK.status,'NOT_ISSUED');
  assert.equal(ssot.settlement.traditionalCheckoutDefault,false);
 });
+
+
+test('Release artifact includes every runtime module and the independent Web3 OS is a real route',()=>{
+ const docker=content('Dockerfile');
+ for(const folder of ['autonomy','economy','community','wallet','realm-os','public'])assert.match(docker,new RegExp('COPY '+folder+' \\\\./'+folder));
+ const server=content('server.js');
+ assert.match(server,/new RealmOS\(db/);
+ assert.match(server,/'\/os':'terminal.html'/);
+ assert.match(server,/'\/api\/os\/status'/);
+ assert.match(server,/'\/api\/siwe\/verify'/);
+ const app=content('public/terminal.html'),client=content('public/terminal.js');
+ assert.match(app,/id="os"/);
+ assert.match(app,/id="os-signals"/);
+ assert.match(client,/loadRealmOS/);
+ assert.match(client,/signInWallet/);
+});
