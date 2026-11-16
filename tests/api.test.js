@@ -179,4 +179,36 @@ test('E2E: starts, live data, search, invite, review, reputation, security and p
    assert.equal(replay.status,422);
  });
 
+ await t.test('Web3 native launch routes: static UI, safe paid proof, Atlas, Farcaster and migration API',async()=>{
+  const names=['/migrate','/atlas','/market','/os','/launch-upgrades.js'];
+  for(const url of names){
+   const response=await fetch(base+url);
+   assert.equal(response.status,200,url+' must be served');
+   const content=await response.text();
+   assert.ok(content.includes(url.endsWith('.js')?'SeekmeshUpgrades':'SEEKMESH'),url+' content must be real');
+  }
+  const imp=await request('/api/migrate');assert.equal(imp.status,200);
+  assert.ok(Array.isArray(imp.body.campaigns));assert.equal(imp.body.rewardBalancesImported,false);
+  assert.equal((await request('/api/migrate/mine')).status,401);
+  const atlas=await request('/api/atlas');assert.equal(atlas.status,200);assert.ok(Array.isArray(atlas.body.agents));assert.equal(atlas.body.stats.verifiedWallets,0);
+  assert.equal((await request('/api/admin/atlas/sync','POST',{})).status,401);
+  const pre=await request('/api/proof/preview?id=1');assert.equal(pre.status,200);
+  assert.equal(pre.body.availablePaidReport,true);
+  const priced=await request('/api/native/x402/status');
+  assert.equal(priced.status,200);assert.equal(priced.body.priceMicroUSDC,50000);
+  assert.equal(priced.body.verifiedSettledRequests,0);
+  const unpaid=await request('/api/proof/premium?id=1');
+  assert.equal(unpaid.status,503,'no independent configured payment receiver; never release premium report');
+  const campaigns=await request('/api/native/campaigns');
+  assert.equal(campaigns.status,200);assert.equal(campaigns.body.status.verifiedFundingTransactions,0);
+  assert.equal(campaigns.body.status.configured,false);
+  const mini=await request('/.well-known/farcaster.json');assert.equal(mini.status,200);
+  assert.equal(mini.body.miniapp.name,'SEEKMESH');
+  assert.equal(mini.body.accountAssociation,undefined);
+  const asset=await fetch(base+'/assets/seekmesh-icon.png');assert.equal(asset.status,200);
+  assert.match(asset.headers.get('content-type'),/image\/png/);
+  const share=await fetch(base+'/expedition/1');assert.equal(share.status,200);
+  assert.match(await share.text(),/fc:miniapp/);
+ });
+
 });
