@@ -72,6 +72,7 @@ export class RealmOS{
   this.db.prepare('DELETE FROM realm_os_receipts WHERE id<(SELECT COALESCE(MAX(id)-1500,0) FROM realm_os_receipts)').run();
  }
  count(sql,...args){return num(this.db.prepare(sql).get(...args))}
+ countOptional(sql){try{return this.count(sql)}catch(e){if(String(e.message).includes('no such table:'))return 0;throw e}}
  measures(){
   const a=this.autonomy?.status()||{};
   const report=this.community?.launchReport()||{};
@@ -90,10 +91,10 @@ export class RealmOS{
    linked_wallets:this.count('SELECT COUNT(*) n FROM mesh_wallet_links'),
    inquiries:this.count('SELECT COUNT(*) n FROM mesh_sponsors'),
    source_clicks_7d:this.count("SELECT COALESCE(SUM(count),0) n FROM realm_event_counts WHERE event='source_click' AND day>=date('now','-6 days')"),
-   settled_campaigns:this.count("SELECT COUNT(DISTINCT campaign_ref) n FROM native_campaign_payouts"),
-   verified_x402_payments:this.count("SELECT COUNT(*) n FROM native_x402_receipts"),
-   imported_campaigns:this.count("SELECT COUNT(*) n FROM realm_imports WHERE state='verified'"),
-   atlas_entries:this.count("SELECT COUNT(*) n FROM atlas_agents"),
+   settled_campaigns:this.countOptional("SELECT COUNT(DISTINCT campaign_ref) n FROM native_campaign_payouts"),
+   verified_x402_payments:this.countOptional("SELECT COUNT(*) n FROM native_x402_receipts"),
+   imported_campaigns:this.countOptional("SELECT COUNT(*) n FROM realm_imports WHERE state='verified'"),
+   atlas_entries:this.countOptional("SELECT COUNT(*) n FROM atlas_agents"),
    workers_online:a.connectedWorkers24h||0,
    physical_executors:a.activeExecutors||0,
    logical_shards:a.logicalWorkerShards||0,
