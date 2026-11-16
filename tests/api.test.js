@@ -108,6 +108,13 @@ test('E2E: starts, live data, search, invite, review, reputation, security and p
    assert.equal(report.status,200);assert.equal(report.body.guilds,1);assert.equal(report.body.guildMemberships,2);
    assert.equal(report.body.sevenDay.totals.page_home,1);assert.equal(report.body.sevenDay.totals.source_click,1);
    assert.equal(report.body.paymentsCollected,null);
+   const preview=await fetch(base+'/guild/agent-discovery-guild');
+   assert.equal(preview.status,200,'A real guild must have a Farcaster-ready share card');
+   const shareHTML=await preview.text();
+   assert.match(shareHTML,/fc:miniapp/);
+   assert.match(shareHTML,/Agent Discovery Guild/);
+   assert.match(shareHTML,/2 real members/);
+   assert.equal((await fetch(base+'/guild/nonexistent-guild-name')).status,404);
  });
  await t.test('Verified member source reports: reason, dedup, admin queue, resolution',async()=>{
    const login=await request('/api/mesh/login','POST',{handle:'GuildFounder',password:'twelve-or-more-characters!'});
