@@ -123,3 +123,32 @@ test('x402 refuses paid delivery from testnet-only facilitator for Base mainnet 
   assert.equal(db.prepare('SELECT COUNT(*) n FROM native_x402_receipts').get().n,0);
  }finally{if(saved===undefined)delete process.env.SEEKMESH_USDC_RECEIVER;else process.env.SEEKMESH_USDC_RECEIVER=saved;db.close();}
 });
+
+test('Atlas OS performs only five honest bounded public MCP endpoint HTTP observations per UTC day',async()=>{
+ const db=dbFixture();
+ let invoked=0;
+ const atlas=new AgentAtlas(db,{autonomy:{request:async(url,opts)=>{
+  assert.equal(opts.kind,'audit');assert.ok(opts.maxBytes<=10000);
+  assert.match(url,/^https:\/\//);invoked++;return {status:200,body:'MCP service'};
+ }}});
+ for(let i=0;i<7;i++)atlas.record({
+  kind:'mcp',external_id:'io.github.testing/service-'+i,name:'MCP Service '+i,
+  description:'A registry-listed remote protocol service with a public endpoint and source notes.',
+  homepage:'https://tool-'+i+'.example.org',source_url:'https://registry.modelcontextprotocol.io/v0.1/servers',
+  endpoint:'https://tool-'+i+'.example.org/mcp',origin:'official_mcp_registry_v0.1',
+  owner_proof:'registry_published_not_wallet_verified'
+ });
+ let observed=0;
+ for(let i=0;i<5;i++){
+  const out=await atlas.autoProbe(1);
+  assert.equal(out.ok,true);observed+=out.measured;
+ }
+ assert.equal(observed,5);assert.equal(invoked,5);
+ const capped=await atlas.autoProbe(1);
+ assert.equal(capped.measured,0);assert.equal(capped.reason,'five_daily_http_observations_cap');
+ assert.equal(db.prepare("SELECT COUNT(*) n FROM atlas_agents WHERE endpoint_proof='http_responded'").get().n,5);
+ assert.equal(atlas.stats().verifiedWallets,0,'http response never changes ownership proof');
+ const before=db.prepare('SELECT COUNT(*) n FROM atlas_agents').get().n;
+ assert.equal(before,7,'no fake registry changes or agent creations');
+ db.close();
+});
