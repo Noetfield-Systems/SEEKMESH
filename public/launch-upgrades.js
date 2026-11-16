@@ -37,6 +37,9 @@
   if(!elStatus||!mission)return;
   try{
    const [payments,campaigns]=await Promise.all([load('/api/native/x402/status'),load('/api/native/campaigns')]);
+   const canFund=campaigns.status?.configured;
+   const fundUI=el('fund-usdc-box');
+   if(fundUI)fundUI.innerHTML=canFund?'<form id="form-fund-native" class="realm-panel launch-form"><span class="section-kicker">USDC / DIRECT FROM YOUR WALLET</span><h3>Fund an Onchain Expedition</h3><p>Contract: '+safe(campaigns.status.escrow)+' · '+safe(campaigns.status.mode)+' · Fee: '+Number(campaigns.status.feeBps)/100+'%. Sponsor deposits reward pool plus the disclosed capped fee reserve. Unused funds return after the campaign deadline by contract terms.</p><label>REWARD BUDGET, USDC<input name="amount" inputmode="decimal" required pattern="[0-9]+(\\.[0-9]{1,6})?" placeholder="5.00"></label><label><input type="checkbox" name="risk" required>I understand this requires two wallet transactions (approve, then fund) and may use real funds on mainnet.</label><button type="submit" class="btn btn-gold">Fund with Connected Wallet ↗</button><small>Only signed and chain-verified receipts are displayed as funded. Testnet uses test USDC, not real sale revenue.</small></form>':'<div class="realm-panel"><span class="section-kicker">ONCHAIN EXPEDITION FUNDING</span><h3>Escrow awaiting independent configuration</h3><p>No dedicated SEEKMESH escrow, verification signer and RPC are connected yet. The contract is tested, but funds cannot be requested until the real contract address and signer are verified.</p></div>';
    elStatus.innerHTML='<article class="realm-panel"><span class="section-kicker">x402 · NATIVE AGENT COMMERCE</span><h3>Proof Intelligence API</h3><p>Pay 0.05 USDC on Base for source-linked evidence. The response is delivered only after facilitator-confirmed payment; not from a mere signed request.</p><p class="tiny-note">Status: '+safe(payments.status)+' · Verified settlements: '+Number(payments.verifiedSettledRequests||0)+'</p><a class="small-link" href="/api/proof/premium?id=1">Inspect paid endpoint / HTTP 402 →</a></article>';
    mission.innerHTML=campaigns.campaigns.length?campaigns.campaigns.map(x=>card('Escrow expedition #'+x.campaign_id,'Onchain funding verified · '+x.reward_budget+' base units · '+x.verifiedPayouts+' payout receipts · '+(x.chain_id===84532?'Base Sepolia testnet':'Base mainnet'),'<a href="https://'+(x.chain_id===84532?'sepolia.':'')+'basescan.org/tx/'+safe(x.funding_txhash)+'" target="_blank" rel="noopener noreferrer">Funding transaction ↗</a>')).join(''):'<div class="realm-panel">No funded SEEKMESH expedition is verified onchain yet. A tested escrow contract exists, but the wallet/contract must be deployed and funded before payouts can be advertised.</div>';
   }catch(e){elStatus.textContent='Payment status not available: '+e.message;mission.textContent='Funding status unavailable.'}
@@ -50,7 +53,57 @@
    box.dataset.active=Number(os.metrics?.source_clicks_7d||0)>0?'true':'false';
   }catch{box.textContent='Realm status will appear when live records are available.'}
  }
+
+ const delay=ms=>new Promise(ok=>setTimeout(ok,ms));
+ const hexWord=n=>BigInt(n).toString(16).padStart(64,'0');
+ function usdcMicros(value){
+  const str=String(value||'').trim();
+  if(!/^(?:[1-9]\d{0,3}|0)(?:\.\d{1,6})?$/.test(str))throw Error('Enter a positive USDC amount with at most six decimal places.');
+  const [whole,frac='']=str.split('.');
+  const raw=BigInt(whole)*1000000n+BigInt((frac+'000000').slice(0,6));
+  if(raw<100000n||raw>250000000n)throw Error('Season 0 supports 0.10–250 USDC per campaign.');
+  return raw;
+ }
+ async function confirmWalletTx(eth,hash){
+  for(let n=0;n<25;n++){
+   const r=await eth.request({method:'eth_getTransactionReceipt',params:[hash]});
+   if(r){if(r.status!=='0x1')throw Error('Blockchain transaction reverted.');return r}
+   await delay(2500);
+  }
+  throw Error('Transaction broadcast but confirmation timed out. Review your wallet before retrying.');
+ }
+ async function fundWalletExpedition(value){
+  if(!state.member||!state.token)throw Error('Sign in with your explorer wallet before funding.');
+  const eth=window.ethereum;
+  if(!eth?.request)throw Error('Use a compatible EVM browser wallet.');
+  const status=(await load('/api/native/campaigns')).status;
+  if(!status.configured||!status.escrow||!status.verifier||!status.usdcToken)throw Error('Independent escrow or verifier is not configured.');
+  const accounts=await eth.request({method:'eth_requestAccounts'}),account=accounts?.[0];
+  if(!account)throw Error('Connect a sender wallet.');
+  const selected=Number.parseInt(await eth.request({method:'eth_chainId'}),16);
+  if(selected!==Number(status.chainId))await eth.request({method:'wallet_switchEthereumChain',params:[{chainId:'0x'+Number(status.chainId).toString(16)}]});
+  const budget=usdcMicros(value),fee=BigInt(status.feeBps),deposit=budget+budget*fee/10000n;
+  if(Number(status.feeBps)>500)throw Error('Unacceptable escrow fee configuration.');
+  const approveData='0x095ea7b3'+hexWord(status.escrow)+hexWord(deposit);
+  const approve=await eth.request({method:'eth_sendTransaction',params:[{from:account,to:status.usdcToken,data:approveData}]});
+  await confirmWalletTx(eth,approve);
+  const deadline=Math.floor(Date.now()/1000)+7*86400;
+  const data=status.fundSelector+hexWord(budget)+hexWord(fee)+hexWord(deadline)+hexWord(status.verifier);
+  const hash=await eth.request({method:'eth_sendTransaction',params:[{from:account,to:status.escrow,data}]});
+  await confirmWalletTx(eth,hash);
+  const verified=await post('/api/native/campaigns/funding-receipt',{txHash:hash});
+  if(verified.fundingVerified!==true)throw Error('Onchain funding not yet verified; see tx '+hash);
+  return verified;
+ }
+
  document.addEventListener('submit',async ev=>{
+  if(ev.target.id==='form-fund-native'){
+   ev.preventDefault();const form=ev.target,btn=form.querySelector('[type=submit]');
+   if(btn)btn.disabled=true;
+   try{const receipt=await fundWalletExpedition(new FormData(form).get('amount'));toast('USDC escrow funded and chain receipt verified: '+receipt.txHash.slice(0,12)+'…');form.reset();await commerce()}
+   catch(e){toast(e.message)}
+   finally{if(btn)btn.disabled=false}
+  }
   if(ev.target.id==='form-migrate'){
    ev.preventDefault();if(!state.token){toast('Sign in with wallet to import a project.');return;}
    const form=ev.target,data=Object.fromEntries(new FormData(form));
