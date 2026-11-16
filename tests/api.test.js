@@ -48,6 +48,32 @@ test('E2E: starts, live data, search, invite, review, reputation, security and p
  });
  await t.test('Autonomy API is truthful and admin-protected',async()=>{const x=await request('/api/autonomy/status');assert.equal(x.status,200);assert.equal(x.body.enabled,false);assert.equal(x.body.schedulerRunning,false);assert.equal(x.body.logicalWorkerShards,2048);assert.equal(x.body.activeExecutors,0);const no=await request('/api/admin/autonomy');assert.equal(no.status,401);const admin=await request('/api/admin/autonomy','GET',null,{'x-admin-key':'test-admin-secret'});assert.equal(admin.status,200);assert.ok(admin.body.sources.length>=3);const control=await request('/api/admin/autonomy/control','POST',{action:'pause'},{'x-admin-key':'test-admin-secret'});assert.equal(control.status,200);assert.equal(control.body.paused,true);const old=await request('/api/admin/autonomy/candidate','POST',{id:9999,decision:'approve'},{'x-admin-key':'test-admin-secret'});assert.equal(old.status,409);const cron=await request('/api/internal/autonomy/tick','POST',{});assert.equal(cron.status,401);});
  await t.test('Real seeded stats and no fake user count',async()=>{const x=await request('/api/stats');assert.equal(x.status,200);assert.equal(x.body.resources,16);assert.equal(x.body.foundingMembers,0);assert.equal(x.body.communityApproved,0);assert.equal(x.body.earnedPoints,0);});
+ await t.test('Genesis in-app drops: public status, private progress and 12+ isolated AI worker journeys',async()=>{
+  const status=await request('/api/genesis/status');
+  assert.equal(status.status,200);assert.equal(status.body.currency,'GENESIS_DROPS_IN_APP');
+  assert.equal(status.body.tokenIssued,false);assert.equal(status.body.guaranteedFutureAirdrop,false);
+  assert.equal(status.body.realMembers,0);
+  assert.equal((await request('/api/genesis/me')).status,401);
+  assert.equal((await request('/api/admin/genesis/dashboard')).status,401);
+  const auth={'x-admin-key':'test-admin-secret'};
+  const demo=await request('/api/admin/genesis/dashboard','GET',null,auth);
+  assert.equal(demo.status,200);assert.equal(demo.body.syntheticExcludedFromPublicMetrics,true);
+  assert.equal(demo.body.independentLLMWorkers,0);
+  const before=(await request('/api/mesh/stats')).body;
+  const sample=await request('/api/admin/genesis/simulate','POST',{count:3},auth);
+  assert.equal(sample.status,200);assert.equal(sample.body.personas,3);
+  assert.ok(sample.body.steps>10);assert.equal(sample.body.realUsersAdded,0);
+  assert.equal((await request('/api/genesis/leaderboard')).body.members.length,0);
+  assert.ok((await request('/api/genesis/leaderboard?scope=simulation')).body.members.length>=3);
+  assert.equal((await request('/api/mesh/stats')).body.nodes,before.nodes);
+  assert.equal((await request('/api/mesh/stats')).body.completedActions,before.completedActions);
+  const view=await fetch(base+'/genesis');
+  assert.equal(view.status,200);assert.match(await view.text(),/id="genesis-demo-board"/);
+  const script=await fetch(base+'/genesis.js');
+  assert.equal(script.status,200);assert.match(await script.text(),/SeekmeshGenesis/);
+  const operator=await fetch(base+'/operator');assert.equal(operator.status,200);
+  assert.match(await operator.text(),/genesis-admin-stats/);
+ });
  await t.test('Search and category filters',async()=>{const all=await request('/api/resources?q=MCP');assert.ok(all.body.resources.length>=1);const filtered=await request('/api/resources?category=Protocols');assert.ok(filtered.body.resources.every(x=>x.category==='Protocols'));const no=await request('/api/resources?q=missingmissing');assert.equal(no.body.count,0);});
  await t.test('Founding signup, invite code and deduplication',async()=>{const a=await request('/api/join','POST',{email:'first@example.org',persona:'Builder',consent:true});assert.equal(a.status,201);assert.match(a.body.inviteUrl,/ref=/);const b=await request('/api/join','POST',{email:'second@example.org',persona:'Curator',ref:a.body.code,consent:true});assert.equal(b.status,201);const duplicate=await request('/api/join','POST',{email:'first@example.org',persona:'Builder',consent:true});assert.equal(duplicate.status,200);assert.equal(duplicate.body.alreadyJoined,true);assert.equal(duplicate.body.inviteUrl,undefined);const stats=await request('/api/stats');assert.equal(stats.body.foundingMembers,2);});
  await t.test('Reject bad input and preserve pending moderation',async()=>{const bad=await request('/api/submit','POST',{...valid,url:'javascript:alert(1)'});assert.equal(bad.status,422);const good=await request('/api/submit','POST',valid);assert.equal(good.status,201);assert.equal(good.body.state,'pending');const x=await request('/api/resources?q=Source%20for%20Test');assert.equal(x.body.count,0);});
@@ -56,6 +82,7 @@ test('E2E: starts, live data, search, invite, review, reputation, security and p
  await t.test('Mesh member economy: auth, quest idempotency, moderation, spend, referral and sponsorship',async()=>{
   const signup=await request('/api/mesh/register','POST',{handle:'FirstNode',password:'secure_password_123456',role:'Builder'});assert.equal(signup.status,201);assert.equal(signup.body.member.xp,25);
   const auth={authorization:'Bearer '+signup.body.token};assert.equal((await request('/api/mesh/me','GET',null,auth)).body.member.credits,5);
+  assert.equal((await request('/api/genesis/me','GET',null,auth)).body.genesis.drops,3);
   assert.equal((await request('/api/mesh/checkin','POST',{},auth)).status,200);
   assert.equal((await request('/api/mesh/checkin','POST',{},auth)).status,409);
   assert.equal((await request('/api/mesh/orientation','POST',{answer:'source-linked'},auth)).status,200);
