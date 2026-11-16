@@ -14,7 +14,7 @@ function fixture(){
  db.exec("CREATE TABLE realm_guild_members(id INTEGER PRIMARY KEY);");
  db.exec("CREATE TABLE realm_guild_posts(id INTEGER PRIMARY KEY,status TEXT);");
  db.exec("CREATE TABLE realm_guild_reports(id INTEGER PRIMARY KEY);");
- db.exec("CREATE TABLE mesh_members(id INTEGER PRIMARY KEY);");
+ db.exec("CREATE TABLE mesh_members(id INTEGER PRIMARY KEY,is_synthetic INTEGER NOT NULL DEFAULT 0);");
  db.exec("CREATE TABLE mesh_wallet_links(member_id INTEGER);");
  db.exec("CREATE TABLE mesh_sponsors(id INTEGER PRIMARY KEY);");
  db.exec("CREATE TABLE realm_event_counts(day TEXT,event TEXT,target TEXT,count INTEGER);");
