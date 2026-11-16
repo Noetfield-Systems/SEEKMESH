@@ -10,6 +10,9 @@ on:
       - 'public/terminal.js'
       - 'public/terminal.html'
       - 'public/launch-upgrades.js'
+      - 'public/genesis.js'
+      - 'public/operator.js'
+      - 'economy/**'
       - 'launch/**'
       - 'atlas/**'
       - 'native/**'
@@ -43,6 +46,11 @@ jobs:
                grep -q '/api/siwe/challenge' /tmp/seekmesh-frontend.js &&
                grep -q 'id="os"' /tmp/seekmesh-home.html &&
                grep -q 'id="form-migrate"' /tmp/seekmesh-home.html &&
+               grep -q 'id="genesis"' /tmp/seekmesh-home.html &&
+               curl -fsS --max-time 15 "$BASE/genesis.js" -o /tmp/seekmesh-genesis.js &&
+               grep -q 'SeekmeshGenesis' /tmp/seekmesh-genesis.js &&
+               curl -fsS --max-time 15 "$BASE/api/genesis/status" -o /tmp/seekmesh-genesis-status.json &&
+               jq -e '.schema=="seekmesh.genesis.v1" and .currency=="GENESIS_DROPS_IN_APP" and .tokenIssued==false and .guaranteedFutureAirdrop==false' /tmp/seekmesh-genesis-status.json >/dev/null &&
                curl -fsS --max-time 15 "$BASE/launch-upgrades.js" -o /tmp/seekmesh-launch.js &&
                grep -q 'fundWalletExpedition' /tmp/seekmesh-launch.js &&
                curl -fsS --max-time 15 "$BASE/api/atlas" -o /tmp/seekmesh-atlas-api.json &&
@@ -137,5 +145,17 @@ jobs:
           curl -fsS --max-time 20 "$BASE/api/mcp/stats" | jq -e '(.toolCalls|type)=="number" and .uniqueAgentsMeasured==false'
           echo 'Live, observed SEEKMESH OS/Atlas metrics (no fake transactions):'
           curl -fsS --max-time 20 "$BASE/api/os/status" | jq '{lastPulse,execution,metrics:{resources:.metrics.resources,atlas_entries:.metrics.atlas_entries,imported_campaigns:.metrics.imported_campaigns,verified_x402_payments:.metrics.verified_x402_payments,settled_campaigns:.metrics.settled_campaigns,mcp_tool_calls_7d:.metrics.mcp_tool_calls_7d}}'
-          echo 'SEEKMESH v1.4.1: Realm + MCP 2026-07-28 + native Web3 launch smoke PASS'
+          # Genesis Season Zero: actual real users versus individually marked sandbox-only agents.
+          curl -fsS --max-time 20 "$BASE/genesis" -o /tmp/seekmesh-genesis-view.html
+          grep -q 'id="genesis"' /tmp/seekmesh-genesis-view.html
+          grep -q 'id="genesis-demo-board"' /tmp/seekmesh-genesis-view.html
+          curl -fsS --max-time 20 "$BASE/api/genesis/status" | jq -e '.schema=="seekmesh.genesis.v1" and .starts=="2026-11-15" and .ends=="2026-12-15" and .tokenIssued==false and .guaranteedFutureAirdrop==false and .realDropsCredited>=0'
+          curl -fsS --max-time 20 "$BASE/api/genesis/leaderboard" | jq -e '.scope=="real" and (.members|type)=="array"'
+          curl -fsS --max-time 20 "$BASE/api/genesis/leaderboard?scope=simulation" | jq -e '.scope=="simulation" and (.members|length)>=12 and (.label|contains("SIMULATED"))'
+          test "$(curl -sS -o /tmp/no-genesis-me.json -w '%{http_code}' --max-time 20 "$BASE/api/genesis/me")" = "401"
+          test "$(curl -sS -o /tmp/no-genesis-admin.json -w '%{http_code}' --max-time 20 "$BASE/api/admin/genesis/dashboard")" = "401"
+          curl -fsS --max-time 20 "$BASE/operator" -o /tmp/seekmesh-founder.html
+          grep -q 'id="genesis-admin-stats"' /tmp/seekmesh-founder.html
+          curl -fsS --max-time 20 "$BASE/api/genesis/status" | jq '{schema,realMembers,realDropsCredited,qualifiedReferrals,tokenIssued,guaranteedFutureAirdrop}'
+          echo 'SEEKMESH Genesis Season Zero + 12 isolated QA agents + all native Web3 launch smoke PASS'
 
