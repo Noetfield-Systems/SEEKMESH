@@ -29,7 +29,7 @@ jobs:
         run: |
           set -euo pipefail
           for n in $(seq 1 15); do
-            if curl -fsS --max-time 10 "$BASE/api/health" | jq -e '.status=="ok" and .version=="0.5.0"' >/dev/null; then break; fi
+            if curl -fsS --max-time 10 "$BASE/api/health" | jq -e '.status=="ok" and .version=="1.4.1"' >/dev/null; then break; fi
             sleep 5
           done
           # Wait for the CURRENT commit's feature set; older versions can pass /api/health during rollout.
@@ -137,5 +137,5 @@ jobs:
           curl -fsS --max-time 20 "$BASE/api/mcp/stats" | jq -e '(.toolCalls|type)=="number" and .uniqueAgentsMeasured==false'
           echo 'Live, observed SEEKMESH OS/Atlas metrics (no fake transactions):'
           curl -fsS --max-time 20 "$BASE/api/os/status" | jq '{lastPulse,execution,metrics:{resources:.metrics.resources,atlas_entries:.metrics.atlas_entries,imported_campaigns:.metrics.imported_campaigns,verified_x402_payments:.metrics.verified_x402_payments,settled_campaigns:.metrics.settled_campaigns,mcp_tool_calls_7d:.metrics.mcp_tool_calls_7d}}'
-          echo 'SEEKMESH v1.4: Realm + MCP 2026-07-28 + native Web3 launch smoke PASS'
+          echo 'SEEKMESH v1.4.1: Realm + MCP 2026-07-28 + native Web3 launch smoke PASS'
 

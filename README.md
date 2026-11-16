@@ -131,3 +131,9 @@ Live Guilds, member-source reports, wallet EIP-191 ownership proof, ledger-backe
 
 ## v1.3 improvements
 The Galxe migration is **link-only or link+CSV**; historical tasks can be attached later with no invented user/reward balances. Verified campaign owners can create/link a real Guild and distribute an original Farcaster-ready `/guild/:slug` page with actual member statistics. See [launch source of truth](spec/seekmesh.ssot.json).
+
+## v1.4.1 — Agent commerce, official MCP distribution and verifiable checks
+
+SEEKMESH is live at [the Web3 Discovery Realm](https://seekmesh-web-production.up.railway.app/). [MCP 2026-07-28 endpoint](https://seekmesh-web-production.up.railway.app/mcp) (stateless read-only JSON-RPC) has **six public tools**. The remote server was **published through GitHub OIDC** in the [official MCP Registry](https://registry.modelcontextprotocol.io/v0.1/servers?search=seekmesh&version=latest). Real tool calls are counted without claiming unique agents or income. The Atlas ingests real official MCP metadata and performs a bounded maximum of five safe public endpoint HTTP observations per UTC day; observed availability is not a security audit.
+
+The x402 paid report endpoint checks facilitator `/supported` for exact Base v2, verifies the signed quote, requires a successful facilitator settlement **and independent Base USDC Transfer** before releasing a premium report, and records pending transactions for safe reconciliation. **SEEKMESH_USDC_RECEIVER remains unconfigured**. No real paid API response, sponsor-funded escrow, fungible SEEK token or cash revenue has been verified. See [Agent Commerce and evidence runbook](docs/MCP_NATIVE_V1_4.md).

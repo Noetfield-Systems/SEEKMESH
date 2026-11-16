@@ -28,3 +28,5 @@ Machine-readable SSOT → implementation ledger for live claims → whitepaper f
 11. [Onchain Escrow and Foundry Tests](ONCHAIN_ESCROW_V1.md) — funded stablecoin campaigns, unique proof payouts and sponsor refunds, code and tests only.
 
 12. [Seven upgrades: Web3-native launch v1.3](LAUNCH_V1_3.md) — migration, owner proof, Agent Atlas, x402 payments, escrow deploy, Realm OS executor, Farcaster association and proof conditions.
+
+13. [Agent Commerce & MCP v1.4.1](MCP_NATIVE_V1_4.md) — current MCP transport and OIDC publication, tracked API demand, Atlas HTTP observations and x402 Base payment receipts.

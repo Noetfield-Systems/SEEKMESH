@@ -1,5 +1,5 @@
 {
-  "version": "1.3.0",
+  "version": "1.4.1",
   "date": "2026-11-15",
   "project": "SEEKMESH",
   "brand": "The Web3 Discovery Realm",
@@ -157,7 +157,8 @@
     "docs/REALM_OS_V1.md",
     "docs/WALLET_NATIVE_V1.md",
     "docs/ONCHAIN_ESCROW_V1.md",
-    "docs/LAUNCH_V1_3.md"
+    "docs/LAUNCH_V1_3.md",
+    "docs/MCP_NATIVE_V1_4.md"
   ],
   "benchmarks": [
     "Axie Infinity / Ronin",
@@ -242,5 +243,48 @@
     "expeditionSharePages": true,
     "guildSocialPreviews": true,
     "guildInvitationRoute": "/guild/:slug"
+  },
+  "agentCommerce": {
+    "mcp": {
+      "status": "LIVE_PUBLISHED_OFFICIAL_REGISTRY",
+      "protocol": "2026-07-28",
+      "registryNamespace": "io.github.Noetfield-Systems/seekmesh",
+      "registryVersion": "1.4.1",
+      "endpoint": "/mcp",
+      "publicTools": [
+        "search_sources",
+        "search_agent_atlas",
+        "get_live_expeditions",
+        "get_guilds",
+        "get_source_proof_quote",
+        "get_native_market_status"
+      ],
+      "publicReadOnly": true,
+      "trackedMcpToolCalls": true,
+      "uniqueHumanAgentCountClaimed": false
+    },
+    "x402": {
+      "status": "PAYMENT_API_CODED_NO_RECEIVER_CONFIGURED_OR_SETTLED_PAID_ORDER",
+      "network": "eip155:8453",
+      "priceMicroUSDC": 50000,
+      "supportCheck": "facilitator /supported must confirm exact v2 Base mainnet",
+      "settlementProof": "unique Base USDC Transfer with payer and receiver",
+      "pendingSettlementRecovery": true,
+      "paidReceiptsVerified": 0
+    },
+    "atlas": {
+      "status": "50_OFFICIAL_MCP_ENTRIES_OBSERVED_ON_2026_11_16",
+      "autoProbe": {
+        "enabledByDefault": true,
+        "dailyLimit": 5,
+        "probeType": "HTTP reachability/latency only",
+        "securityAudit": false
+      }
+    },
+    "finance": {
+      "escrowContractDeployed": false,
+      "realSponsorFundingVerified": 0,
+      "tokenIssued": false
+    }
   }
 }

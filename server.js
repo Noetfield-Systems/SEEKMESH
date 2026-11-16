@@ -153,7 +153,7 @@ export const server=http.createServer(async(req,res)=>{
   const u=new URL(req.url,`http://${req.headers.host||'localhost'}`),p=u.pathname;
   if(req.method==='GET'){
     if(p==='/mcp')return j(res,405,{error:'Use stateless Streamable HTTP POST with MCP-Protocol-Version 2026-07-28.'},{allow:'POST'});
-    if(p==='/api/health')return j(res,200,{status:'ok',database:'sqlite',version:'0.5.0'});
+    if(p==='/api/health')return j(res,200,{status:'ok',database:'sqlite',version:'1.4.1'});
     if(p==='/.well-known/farcaster.json')return j(res,200,farcasterManifest(),{'cache-control':'public,max-age=300'});
     if(p==='/api/farcaster/status')return j(res,200,{manifestUrl:SITE_URL+'/.well-known/farcaster.json',associated:!!farcasterManifest().accountAssociation,domain:new URL(SITE_URL).hostname,publishing:'account association must be signed by the domain owner; unsigned metadata alone does not publish a Mini App'});
     if(/^\/guild\/[a-z0-9-]{3,80}$/.test(p)){
