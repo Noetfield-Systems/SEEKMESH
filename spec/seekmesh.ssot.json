@@ -44,7 +44,8 @@
     "x402 v2 premium USDC proof endpoint (receiver not configured, no paid settlements)",
     "Onchain escrow receipt reader and direct browser-wallet funding UI (no deployed contract verified)",
     "Bounded Realm OS executor with hashed evidence artifacts and retries",
-    "Original fantasy Realm live pulse, creator expedition share pages and Farcaster manifest"
+    "Original fantasy Realm live pulse, creator expedition share pages and Farcaster manifest",
+    "Live Season Zero Genesis Vault: saved internal Drops, referral unlock, transparent real scoreboards and independent synthetic QA Arena"
   ],
   "units": {
     "xp": {
@@ -158,7 +159,8 @@
     "docs/WALLET_NATIVE_V1.md",
     "docs/ONCHAIN_ESCROW_V1.md",
     "docs/LAUNCH_V1_3.md",
-    "docs/MCP_NATIVE_V1_4.md"
+    "docs/MCP_NATIVE_V1_4.md",
+    "docs/GENESIS_SEASON_ZERO.md"
   ],
   "benchmarks": [
     "Axie Infinity / Ronin",
@@ -286,5 +288,32 @@
       "realSponsorFundingVerified": 0,
       "tokenIssued": false
     }
+  },
+  "genesisSeason": {
+    "status": "LIVE_IN_APP",
+    "start": "2026-11-15",
+    "end": "2026-12-15",
+    "route": "/genesis",
+    "savedBalances": true,
+    "internalCurrency": "GENESIS_DROPS",
+    "drops": {
+      "join": 3,
+      "primer": 5,
+      "daily": 1,
+      "approvedSource": 12,
+      "qualifiedReferral": 8
+    },
+    "referralRequirement": "First real invitee approved original source",
+    "walletLogin": "EIP-4361 EOA",
+    "publicBoard": "/api/genesis/leaderboard",
+    "separateSimulationBoard": "/api/genesis/leaderboard?scope=simulation",
+    "scriptedQAPersonas": 12,
+    "qaState": "SYNTHETIC_ONLY_NO_REAL_CUSTOMERS",
+    "qaRunsProtected": true,
+    "realUsersNotInflated": true,
+    "independentLLMAgents": 0,
+    "tokenIssued": false,
+    "guaranteedFutureToken": false,
+    "onchainAirdrop": false
   }
 }
