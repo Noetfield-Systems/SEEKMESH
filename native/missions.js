@@ -1,4 +1,4 @@
-import {JsonRpcProvider,Interface,getAddress} from 'ethers';
+import {JsonRpcProvider,Interface,getAddress,id as selectorId} from 'ethers';
 const abi=new Interface([
  'event CampaignFunded(uint256 indexed id,address indexed sponsor,address verifier,uint256 rewardBudget,uint256 totalDeposited,uint64 deadline,uint16 feeBps)',
  'event MissionRewardPaid(uint256 indexed id,bytes32 indexed evidenceHash,address indexed recipient,uint256 amount,uint256 fee)',
@@ -16,7 +16,9 @@ export class NativeMissions{
  config(){
   let escrow=null;try{escrow=getAddress(process.env.SEEKMESH_ESCROW_CONTRACT||'')}catch{}
   const chain=Number(process.env.SEEKMESH_ESCROW_CHAIN_ID||84532),rpc=chain===8453?process.env.BASE_RPC_URL:process.env.BASE_SEPOLIA_RPC_URL;
-  return {escrow,chainId:chain,rpcConfigured:!!rpc,mode:chain===84532?'testnet':'mainnet',ready:!!escrow&&!!rpc&&[84532,8453].includes(chain)};
+  let verifier=null;try{verifier=getAddress(process.env.SEEKMESH_ESCROW_VERIFIER||'')}catch{}
+  const token=chain===8453?'0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913':'0x036CbD53842c5426634e7929541eC2318f3dCF7e';
+  return {escrow,verifier,token,chainId:chain,rpcConfigured:!!rpc,mode:chain===84532?'testnet':'mainnet',ready:!!escrow&&!!verifier&&!!rpc&&[84532,8453].includes(chain)};
  }
  async receipt(tx){
   const c=this.config();
@@ -62,6 +64,6 @@ export class NativeMissions{
  }
  status(){
   const c=this.config();
-  return {escrow:c.escrow,chainId:c.chainId,mode:c.mode,configured:c.ready,verifiedFundingTransactions:this.db.prepare('SELECT COUNT(*) n FROM native_campaigns').get().n,verifiedPayouts:this.db.prepare('SELECT COUNT(*) n FROM native_campaign_payouts').get().n,fulfilledCampaigns:this.db.prepare('SELECT COUNT(DISTINCT campaign_ref) n FROM native_campaign_payouts').get().n,tokenIssued:false};
+  return {escrow:c.escrow,verifier:c.verifier,usdcToken:c.token,fundSelector:selectorId('fund(uint256,uint16,uint64,address)').slice(0,10),feeBps:250,chainId:c.chainId,mode:c.mode,configured:c.ready,verifiedFundingTransactions:this.db.prepare('SELECT COUNT(*) n FROM native_campaigns').get().n,verifiedPayouts:this.db.prepare('SELECT COUNT(*) n FROM native_campaign_payouts').get().n,fulfilledCampaigns:this.db.prepare('SELECT COUNT(DISTINCT campaign_ref) n FROM native_campaign_payouts').get().n,tokenIssued:false};
  }
 }
