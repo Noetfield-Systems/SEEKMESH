@@ -18,3 +18,9 @@
 
 ## Remaining independent-owner dependencies
 The connected SEEKMESH service has no independent USDC receiver, onchain treasury signer or deployment RPC configured; no real sponsor funds, x402 payment receipts, Farcaster signed account association, mainnet deployment or minted SEEK token have been verified. Discovery and guild launches do not depend on those.
+
+## Migration and Guild completion
+- `/migrate` supports **Galxe campaign URL only**, with no invented tasks, or URL plus a CSV of title/description/action_url rows.
+- The owner can attach an authentic CSV later to an existing draft if no tasks have been imported. Neither operation moves wallets, historical rewards, user information or token claims.
+- An import is private until the independent project's DNS TXT challenge succeeds. The verified owner may use **Create / Link Founder Guild**, which links a persisted real Guild and its members to that public imported campaign. Each Guild can share `/guild/:slug` with original first-party social art and a Farcaster Mini App preview; the destination still supports normal browser access.
+- The Guild social card shows only real persisted member counts and visible signals; no simulated engagement.

@@ -214,7 +214,15 @@
     "status": "LIVE_PRIVATE_CSV_IMPORT_DNS_PUBLICATION",
     "publicWithoutOwnership": false,
     "legacyBalancesImported": false,
-    "legacyUserDataImported": false
+    "legacyUserDataImported": false,
+    "ingestionModes": [
+      "galxe_campaign_url_only",
+      "galxe_url_plus_csv",
+      "attach_csv_to_existing_draft"
+    ],
+    "verifiedOwnerGuildLink": true,
+    "publicGuildSocialCards": true,
+    "questsFundedByImport": false
   },
   "atlas": {
     "status": "LIVE_WITH_OPTIONAL_REGISTRY_SYNC",
@@ -231,6 +239,8 @@
     "socialArtwork": "LIVE_FIRST_PARTY",
     "accountAssociationVerified": false,
     "storePublished": false,
-    "expeditionSharePages": true
+    "expeditionSharePages": true,
+    "guildSocialPreviews": true,
+    "guildInvitationRoute": "/guild/:slug"
   }
 }

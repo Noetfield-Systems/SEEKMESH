@@ -71,3 +71,8 @@ The live, non-money features can attract users now. Mainnet monetary claims cann
 | Farcaster | FIRST-PARTY 1024px icon + 512px splash + 1200x630 social; manifest and expedition share links | Signed JFS domain accountAssociation and Farcaster directory acceptance |
 
 **Payment revenue:** 0 independently verified paid requests. **Onchain escrow payments:** 0 verified funding/payout txs at inspection. **SEEK token:** unissued. No Stripe or unrelated billing.
+
+## Follow-on launch enhancements
+- **Campaign URL-only import**: live, zero fabricated quests. Authentic CSV descriptions may be attached later by the owner to an import with no existing quest rows.
+- **Project-owner Guild binding**: live route and UI, conditional on DNS owner verification, with exact project-to-Guild link.
+- **Guild sharing**: `/guild/:slug` dynamically renders OG and Farcaster Mini App previews using actual Guild records and original artwork. Farcaster directory publication remains contingent on a signed association (not fabricated).

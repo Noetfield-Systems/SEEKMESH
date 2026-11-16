@@ -128,3 +128,6 @@ Live Guilds, member-source reports, wallet EIP-191 ownership proof, ledger-backe
 - [Mission Escrow reference implementation](contracts/ExpeditionEscrow.sol) and [Foundry adversarial tests](test/ExpeditionEscrow.t.sol). Six tests pass; no contract address, mainnet funds or payouts are claimed. [Runbook](docs/ONCHAIN_ESCROW_V1.md).
 - Realm OS now includes narrow automated source inclusion for high-signal, recently checked official-GitHub candidates. Hard maximum three daily, evidence receipts, source label `autonomous-reviewed`; no reward minting or security-audit claim.
 - Open-source participation remains free and independent. No Stripe checkout or unrelated company billing is connected.
+
+## v1.3 improvements
+The Galxe migration is **link-only or link+CSV**; historical tasks can be attached later with no invented user/reward balances. Verified campaign owners can create/link a real Guild and distribute an original Farcaster-ready `/guild/:slug` page with actual member statistics. See [launch source of truth](spec/seekmesh.ssot.json).
