@@ -9,6 +9,7 @@ import { MeshEconomy } from './economy/core.js';
 import { CommunityLayer } from './community/engine.js';
 import { WalletLink } from './wallet/link.js';
 import { RealmOS } from './realm-os/engine.js';
+import { RealmSIWE } from './wallet/siwe.js';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC = path.join(ROOT, 'public');
@@ -75,6 +76,7 @@ const mesh=new MeshEconomy(db);
 const community=new CommunityLayer(db);
 const wallet=new WalletLink(db,SITE_URL);
 const realmOS=new RealmOS(db,{autonomy,mesh,community});
+const siwe=new RealmSIWE(db,SITE_URL,mesh,realmOS);
 
 const categories = ['All','AI & Models','Agent Infrastructure','Protocols','Communities','Builders','Search & Data'];
 const quests = [
@@ -159,7 +161,7 @@ export const server=http.createServer(async(req,res)=>{
     if(safePublicFile(p,res))return;return j(res,404,{error:'Not found'});
   }
   if(req.method!=='POST')return j(res,405,{error:'Method not allowed'});
-  if(!['/api/join','/api/submit','/api/privacy-request','/api/admin/review','/api/admin/os/control','/api/internal/os/tick','/api/admin/autonomy/control','/api/admin/autonomy/source','/api/admin/autonomy/candidate','/api/mesh/register','/api/mesh/login','/api/mesh/logout','/api/mesh/checkin','/api/mesh/orientation','/api/mesh/submit','/api/mesh/redeem','/api/mesh/sponsor','/api/guilds/create','/api/guilds/join','/api/guilds/leave','/api/guilds/post','/api/guilds/report','/api/admin/guild-post','/api/admin/source-report','/api/admin/mesh/sponsor-action','/api/mesh/source-report','/api/mesh/wallet-challenge','/api/mesh/wallet-verify','/api/mesh/wallet-unlink','/api/telemetry','/api/internal/autonomy/tick','/api/internal/autonomy/claim','/api/internal/autonomy/report'].includes(p))return j(res,404,{error:'Not found'});
+  if(!['/api/join','/api/submit','/api/privacy-request','/api/admin/review','/api/admin/os/control','/api/internal/os/tick','/api/admin/autonomy/control','/api/admin/autonomy/source','/api/admin/autonomy/candidate','/api/siwe/challenge','/api/siwe/verify','/api/mesh/register','/api/mesh/login','/api/mesh/logout','/api/mesh/checkin','/api/mesh/orientation','/api/mesh/submit','/api/mesh/redeem','/api/mesh/sponsor','/api/guilds/create','/api/guilds/join','/api/guilds/leave','/api/guilds/post','/api/guilds/report','/api/admin/guild-post','/api/admin/source-report','/api/admin/mesh/sponsor-action','/api/mesh/source-report','/api/mesh/wallet-challenge','/api/mesh/wallet-verify','/api/mesh/wallet-unlink','/api/telemetry','/api/internal/autonomy/tick','/api/internal/autonomy/claim','/api/internal/autonomy/report'].includes(p))return j(res,404,{error:'Not found'});
   if(p.startsWith('/api/admin/')&&!authenticate(req))return j(res,401,{error:'Unauthorized'});
   if(['/api/internal/autonomy/tick','/api/internal/os/tick'].includes(p)&&!cronAuthenticate(req))return j(res,401,{error:'Unauthorized'});
   if(['/api/internal/autonomy/claim','/api/internal/autonomy/report'].includes(p)&&!workerAuthenticate(req))return j(res,401,{error:'Unauthorized'});
@@ -199,6 +201,14 @@ export const server=http.createServer(async(req,res)=>{
       else if(action==='report')r=community.report(member,Number(b.postId),clean(b.reason,30));
       else return j(res,404,{error:'Unknown guild action.'});
       return j(res,r.error?422:action==='create'?201:200,r);
+    }
+    if(p==='/api/siwe/challenge'){
+      if(limited(req,'siwe-challenge',8))return j(res,429,{error:'Too many wallet sign-in challenges.'});
+      const out=siwe.challenge(b.address,b.chainId);return j(res,out.error?422:201,out);
+    }
+    if(p==='/api/siwe/verify'){
+      if(limited(req,'siwe-verify',10))return j(res,429,{error:'Too many wallet sign-in attempts.'});
+      const out=siwe.verify(b);return j(res,out.error?422:200,out);
     }
     if(p==='/api/mesh/register'){if(limited(req,'mesh-register',4))return j(res,429,{error:'Account creation rate limit reached.'});const out=mesh.register(b);return j(res,out.error?422:201,out);}
     if(p==='/api/mesh/login'){if(limited(req,'mesh-login',12))return j(res,429,{error:'Too many sign-in attempts.'});const out=mesh.login(b);return j(res,out.error?401:200,out);}
