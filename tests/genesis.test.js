@@ -1,0 +1,71 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {DatabaseSync} from 'node:sqlite';
+import {MeshEconomy} from '../economy/core.js';
+import {GenesisSeason} from '../economy/genesis.js';
+
+function fixture(){
+ const db=new DatabaseSync(':memory:');
+ db.exec("CREATE TABLE submissions(id INTEGER PRIMARY KEY AUTOINCREMENT,name TEXT,url TEXT,state TEXT,created_at TEXT)");
+ const mesh=new MeshEconomy(db),genesis=new GenesisSeason(db,mesh);
+ return {db,mesh,genesis};
+}
+test('Genesis Season Zero: real signup + daily + orientation deposit internal Drops once and persist',()=>{
+ const {db,mesh,genesis}=fixture();
+ const signup=mesh.register({handle:'RealBuilder',password:'really-long-secret-password',role:'Builder'});
+ assert.equal(signup.ok,true);
+ assert.equal(genesis.member(signup.member.id).drops,3,'real signup gets 3 internal Drops, not SEEK');
+ assert.equal(genesis.public().realMembers,1);
+ assert.equal(genesis.public().tokenIssued,false);
+ assert.equal(genesis.public().guaranteedFutureAirdrop,false);
+ mesh.checkin(signup.member.id);mesh.orientation(signup.member.id,'source-linked');
+ let stored=genesis.member(signup.member.id);
+ assert.equal(stored.drops,9);
+ assert.equal(stored.history.length,3);
+ const twice=genesis.member(signup.member.id);
+ assert.equal(twice.drops,9,'repeated reads cannot mint duplicate Drops');
+ assert.equal(db.prepare('SELECT COUNT(*) n FROM genesis_drops').get().n,3);
+ const restore=mesh.login({handle:'RealBuilder',password:'really-long-secret-password'});
+ assert.equal(restore.ok,true);assert.equal(genesis.member(restore.member.id).drops,9);
+ db.close();
+});
+test('Genesis referral: no bonus for empty signups; inviter only credited once after real accepted source',()=>{
+ const {db,mesh,genesis}=fixture();
+ const parent=mesh.register({handle:'OriginalScout',password:'strong-password-original!',role:'Builder'});
+ const child=mesh.register({handle:'InvitedScout',password:'strong-password-invite!',role:'Curator',invite:parent.member.referral_code});
+ assert.equal(genesis.member(parent.member.id).referrals.registered,1);
+ assert.equal(genesis.member(parent.member.id).referrals.qualified,0);
+ assert.equal(genesis.member(parent.member.id).drops,3);
+ const sub=Number(db.prepare("INSERT INTO submissions(name,url,state,created_at) VALUES('Valid Original','https://example.org/one','approved',datetime('now'))").run().lastInsertRowid);
+ db.prepare('INSERT INTO mesh_submission_links(submission_id,member_id) VALUES(?,?)').run(sub,child.member.id);
+ mesh.approved(sub);mesh.approved(sub);
+ assert.equal(genesis.member(child.member.id).drops,15);
+ assert.equal(genesis.member(parent.member.id).drops,11);
+ assert.equal(genesis.member(parent.member.id).referrals.qualified,1);
+ assert.equal(genesis.public().qualifiedReferrals,1);
+ db.close();
+});
+test('Twelve scripted customer journeys have saved progress but zero real user or revenue inflation',()=>{
+ const {db,mesh,genesis}=fixture();
+ const before=mesh.stats();
+ const run=genesis.seedOnce();
+ assert.equal(run.ok,true);assert.equal(run.personas,12);
+ assert.ok(run.steps>=45);
+ assert.equal(genesis.seedOnce().created,false,'no repeated auto-seeding on reboot');
+ assert.equal(mesh.stats().nodes,before.nodes);
+ assert.equal(mesh.stats().completedActions,before.completedActions);
+ assert.equal(mesh.stats().creditsIssued,before.creditsIssued);
+ assert.equal(genesis.public().realMembers,0);
+ assert.equal(genesis.public().realDropsCredited,0);
+ assert.equal(genesis.board('real').members.length,0);
+ assert.equal(genesis.board('simulation').members.length,12);
+ assert.equal(genesis.dashboard().synthetic.accounts,12);
+ assert.equal(genesis.dashboard().independentLLMWorkers,0);
+ assert.equal(db.prepare("SELECT COUNT(*) n FROM submissions").get().n,0);
+ assert.equal(mesh.login({handle:'SIM'+run.runId+'_00',password:'made-up-password'}).ok,undefined);
+ assert.throws(()=>mesh.session(db.prepare("SELECT id FROM mesh_members WHERE is_synthetic=1 LIMIT 1").get().id),/Synthetic customer/);
+ const another=genesis.simulate(4);
+ assert.equal(another.ok,true);assert.equal(genesis.board('simulation').members.length,16);
+ assert.equal(mesh.stats().nodes,0);
+ db.close();
+});
