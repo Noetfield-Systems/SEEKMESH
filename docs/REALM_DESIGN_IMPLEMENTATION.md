@@ -27,3 +27,14 @@ No fabricated explorer count, fictitious token balance, token sale, minting, cas
 
 ## Deployment
 The Railway service retains its existing attached SQLite volume and all production secrets. Only public assets + static asset router + UI and tests change.
+
+
+## 2026-11-16 — Premium Realm Experience, complete multi-section launch
+
+- Replaced one-screen Hero-and-gates homepage with guided onboarding, seven distinct illustrated chapters, actual Explorer ranking, real Guild previews, actual account state, Season Zero invitations, Agent Atlas/OS explainers and six FAQs.
+- Header account dropdown provides real sign-up, sign-in, wallet verification/linking, persisted progress, referrals, rewards, and Sign Out. Connecting a wallet while signed in links it to the existing account; guest EVM login uses SIWE.
+- A responsive immersive design system in `public/experience.css` removes the repeated fixed full-page hero background from every chapter and establishes distinct scenic artwork for Explore, Missions, Guilds, Build, Rewards, Market, Atlas and OS.
+- Each chapter receives a practical 3-step contextual guide. Agent Atlas explains registry listing versus ERC-8004 ownership versus HTTP observation without conflating them.
+- Home numbers are fetched from real `/api/mesh/stats`, `/api/genesis/leaderboard` and `/api/guilds`. All synthetic QA is separate and no fictional token metrics appear.
+- `tests/browser-experience.mjs` and `browser-experience.yml` verify scrollable full home, no horizontal overflow at 1440/390px, account menu positioning, walkthrough, major chapter routes, Genesis QA separation, with full-page desktop/mobile screenshots. The browser suite passed on 2026-11-16.
+- No SEEK token was issued and no guarantee of future airdrop payments is represented in the new launch UI.
