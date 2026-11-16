@@ -8,6 +8,9 @@ COPY economy ./economy
 COPY community ./community
 COPY wallet ./wallet
 COPY realm-os ./realm-os
+COPY launch ./launch
+COPY atlas ./atlas
+COPY native ./native
 COPY public ./public
 RUN mkdir -p /data && chown -R node:node /app /data
 ENV NODE_ENV=production DATA_DIR=/data PORT=3000

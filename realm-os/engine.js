@@ -90,8 +90,10 @@ export class RealmOS{
    linked_wallets:this.count('SELECT COUNT(*) n FROM mesh_wallet_links'),
    inquiries:this.count('SELECT COUNT(*) n FROM mesh_sponsors'),
    source_clicks_7d:this.count("SELECT COALESCE(SUM(count),0) n FROM realm_event_counts WHERE event='source_click' AND day>=date('now','-6 days')"),
-   settled_campaigns:0,
-   verified_x402_payments:0,
+   settled_campaigns:this.count("SELECT COUNT(DISTINCT campaign_ref) n FROM native_campaign_payouts"),
+   verified_x402_payments:this.count("SELECT COUNT(*) n FROM native_x402_receipts"),
+   imported_campaigns:this.count("SELECT COUNT(*) n FROM realm_imports WHERE state='verified'"),
+   atlas_entries:this.count("SELECT COUNT(*) n FROM atlas_agents"),
    workers_online:a.connectedWorkers24h||0,
    physical_executors:a.activeExecutors||0,
    logical_shards:a.logicalWorkerShards||0,
@@ -142,7 +144,7 @@ export class RealmOS{
   return {inserted:!!result.changes,id:Number(result.lastInsertRowid)};
  }
  close(packetId,evidence,verification='automated_observation'){
-  this.db.prepare("UPDATE realm_os_packets SET status='observed',evidence=?,updated_at=datetime('now'),completed_at=datetime('now') WHERE id=? AND status='open'").run(safeJSON(evidence),packetId);
+  this.db.prepare("UPDATE realm_os_packets SET status='observed',evidence=?,updated_at=datetime('now'),completed_at=datetime('now') WHERE id=? AND status IN ('open','running')").run(safeJSON(evidence),packetId);
   const row=this.db.prepare('SELECT * FROM realm_os_packets WHERE id=?').get(packetId);
   if(row?.status==='observed')this.audit(row.agent_id,'packet.observed',{kind:row.kind,...evidence},verification,packetId);
   return row;
@@ -208,6 +210,10 @@ export class RealmOS{
    if(m.pending_sources>0)enqueue('review_member_sources','proof','Inspect '+m.pending_sources+' community submissions and their source links','Accept or reject with review receipt; only approved original contribution earns credits.',78,'discovery:accepted_sources',{queue:m.pending_sources});
    if(m.flagged_signals>0)enqueue('moderate_guild_signals','guild','Review reports on guild signals','Evidence-backed moderation outcome, no automatic arbitrary bans.',70,'community:guild_signals',{reports:m.flagged_signals});
    if(m.failed_jobs>0||m.crawler_errors>0)enqueue('recover_discovery','quality','Diagnose '+m.failed_jobs+' failed source jobs and '+m.crawler_errors+' runtime errors','Retry only bounded eligible jobs, preserve crawl policy and error receipts.',90,'discovery:source_audits',{failed:m.failed_jobs,errors:m.crawler_errors});
+   enqueue('sync_atlas_mcp','atlas','Synchronize verified metadata from the official MCP Registry','Persist source provenance, do not invent reliability or trading metrics.',43,null,{source:'official_registry'});
+   enqueue('daily_realm_report','strategy','Build today's auditable discovery and participation intelligence snapshot','Create database-backed aggregate artifact and hash receipt.',39,null,{date:date()});
+   enqueue('publish_guild_expansion','guild','Report verified campaign imports and guild recruitment opportunities','Produce auditable import+guild report without fake migration rewards.',38,null,{date:date()});
+   if(m.failed_jobs>0)enqueue('repair_discovery_runtime','quality','Trigger bounded autonomy recheck after observed failures','Only the existing budgeted crawler may be ticked.',88,null,{failures:m.failed_jobs});
    if(m.inquiries>0)enqueue('qualify_partner_requests','market','Qualify '+m.inquiries+' opt-in Web3 discovery partnership requests','Record real wallet-funded mission scope and next action; no payment claim without chain receipt.',70,'distribution:inquiries',{inquiries:m.inquiries});
    if(m.source_clicks_7d<100)enqueue('improve_discovery_activation','growth','Improve source usefulness and activation from real seven-day data','Measure real search-to-source clicks and qualified contributor actions, not vanity followers.',40,'distribution:source_clicks_7d',{clicks:m.source_clicks_7d});
    if(m.settled_campaigns===0)enqueue('build_stablecoin_mission','chain','Implement a reproducible sponsor-funded stablecoin mission test','Testnet funded escrow, single payout, refund and tx receipt; never claim mainnet settlement before verified.',65,'commerce:settled_campaigns',{status:'not_deployed'});
@@ -231,7 +237,7 @@ export class RealmOS{
    schema:'seekmesh.realm_os.v1',project:'SEEKMESH',independentWeb3:true,
    enabled:this.enabled,paused:!!pulse.paused,schedulerRunning:!!this.timer,
    logicalAgentRoles:NODES.length,physicalOSAgents:0,physicalDiscoveryExecutors:m.physical_executors,
-   logicalShardsAreProcesses:false,liveWeb3SettlementsVerified:0,tokenIssued:false,usdcEscrowLive:false,x402PaymentsLive:false,
+   logicalShardsAreProcesses:false,liveWeb3SettlementsVerified:m.settled_campaigns+m.verified_x402_payments,tokenIssued:false,usdcEscrowLive:!!this.nativeMissions?.config()?.ready,x402PaymentsLive:!!this.paidProof?.receiver(),execution:this.executor?.metrics()||{executed:0,queued:0},
    lastPulse:pulse.last_pulse,lastFailure:pulse.last_failure,completedPulses:pulse.executions,
    queues:Object.fromEntries(packets.map(x=>[x.status,x.n])),goals:this.goals(),phases:this.phases(),
    expeditions:this.expedition(),metrics:m
@@ -240,9 +246,9 @@ export class RealmOS{
  signals(){
   return this.db.prepare("SELECT id,url,name,description,category,score,last_seen_at FROM autonomy_candidates WHERE state='ready' AND http_status=200 AND score>=50 ORDER BY score DESC,last_seen_at DESC LIMIT 12").all().map(x=>({...x,state:'candidate_not_independently_verified',credited:false}));
  }
- public(){const x=this.status();return {schema:x.schema,project:x.project,independentWeb3:true,enabled:x.enabled,paused:x.paused,schedulerRunning:x.schedulerRunning,logicalAgentRoles:x.logicalAgentRoles,physicalOSAgents:0,physicalDiscoveryExecutors:x.physicalDiscoveryExecutors,tokenIssued:false,usdcEscrowLive:false,x402PaymentsLive:false,lastPulse:x.lastPulse,goals:x.goals,phases:x.phases,expeditions:x.expeditions,metrics:x.metrics,signals:this.signals(),roles:this.agents().map(a=>({name:a.display_name,department:a.department,mission:a.mission,state:a.state,logicalRole:true}))};}
+ public(){const x=this.status();return {schema:x.schema,project:x.project,independentWeb3:true,enabled:x.enabled,paused:x.paused,schedulerRunning:x.schedulerRunning,logicalAgentRoles:x.logicalAgentRoles,physicalOSAgents:0,physicalDiscoveryExecutors:x.physicalDiscoveryExecutors,tokenIssued:false,usdcEscrowLive:x.usdcEscrowLive,x402PaymentsLive:x.x402PaymentsLive,execution:x.execution,lastPulse:x.lastPulse,goals:x.goals,phases:x.phases,expeditions:x.expeditions,metrics:x.metrics,signals:this.signals(),roles:this.agents().map(a=>({name:a.display_name,department:a.department,mission:a.mission,state:a.state,logicalRole:true}))};}
  admin(){
-  return {status:this.status(),agents:this.agents(),packets:this.db.prepare("SELECT * FROM realm_os_packets ORDER BY CASE status WHEN 'open' THEN 0 ELSE 1 END,priority DESC,id DESC LIMIT 100").all(),receipts:this.db.prepare('SELECT * FROM realm_os_receipts ORDER BY id DESC LIMIT 100').all(),expeditions:this.expedition()};
+  return {status:this.status(),agents:this.agents(),packets:this.db.prepare("SELECT * FROM realm_os_packets ORDER BY CASE status WHEN 'open' THEN 0 ELSE 1 END,priority DESC,id DESC LIMIT 100").all(),receipts:this.db.prepare('SELECT * FROM realm_os_receipts ORDER BY id DESC LIMIT 100').all(),expeditions:this.expedition(),execution:this.executor?.metrics()||null};
  }
  control(data){
   const act=s(data.action,32);
