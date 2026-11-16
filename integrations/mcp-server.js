@@ -19,8 +19,18 @@ const rpcResult=(id,result)=>({jsonrpc:'2.0',id,result});
 const resultData=data=>({resultType:'complete',content:[{type:'text',text:JSON.stringify(data)}],structuredContent:data,isError:false});
 const toolError=reason=>({resultType:'complete',content:[{type:'text',text:String(reason)}],isError:true});
 export class SeekmeshMCP{
- constructor({search,atlas,realmOS,community,paidProof,missions,baseURL}={}){
-  Object.assign(this,{search,atlas,realmOS,community,paidProof,missions,baseURL});
+ constructor({db,search,atlas,realmOS,community,paidProof,missions,baseURL}={}){
+  Object.assign(this,{db,search,atlas,realmOS,community,paidProof,missions,baseURL});
+  db.exec("CREATE TABLE IF NOT EXISTS realm_mcp_tool_calls(day TEXT NOT NULL,tool TEXT NOT NULL,outcome TEXT NOT NULL,n INTEGER NOT NULL DEFAULT 0,PRIMARY KEY(day,tool,outcome))");
+ }
+ track(tool,outcome){
+  const safeTool=String(tool||'unknown').replace(/[^a-z_]/g,'').slice(0,40)||'unknown';
+  const success=outcome==='success'?'success':'error';
+  this.db.prepare("INSERT INTO realm_mcp_tool_calls(day,tool,outcome,n) VALUES(date('now'),?,?,1) ON CONFLICT(day,tool,outcome) DO UPDATE SET n=n+1").run(safeTool,success);
+ }
+ usage(){
+  const totals=this.db.prepare("SELECT tool,outcome,SUM(n) calls FROM realm_mcp_tool_calls WHERE day>=date('now','-6 days') GROUP BY tool,outcome ORDER BY calls DESC LIMIT 30").all();
+  return {window:'last_7_utc_days',toolCalls:totals.reduce((a,v)=>a+v.calls,0),byTool:totals,uniqueAgentsMeasured:false,paidRequests:this.paidProof.publicStatus().verifiedSettledRequests,notRevenue:'MCP usage is unbilled unless a separate x402 settlement receipt exists.'};
  }
  discover(){
   return {resultType:'complete',protocolVersion:PROTOCOL,serverInfo:{name:'SEEKMESH Discovery Realm',version:'1.4.0',websiteUrl:this.baseURL},capabilities:{tools:{listChanged:false}},description:'Independent Web3-native source and Agent Trust Atlas; public read-only discovery plus separately paid x402 proof API'};
@@ -94,8 +104,9 @@ export class SeekmeshMCP{
    if(!tools.some(t=>t.name===name))return send(404,rpcError(id,-32601,'UnknownTool'));
    try{
     const out=await this.call(name,body.params?.arguments||{});
+    this.track(name,out?.isError?'error':'success');
     return send(200,rpcResult(id,out||toolError('Tool is unavailable.')));
-   }catch(e){return send(200,rpcResult(id,toolError('Tool error: '+strip(e.message))))}
+   }catch(e){this.track(name,'error');return send(200,rpcResult(id,toolError('Tool error: '+strip(e.message))))}
   }
   return send(404,rpcError(id,-32601,'MethodNotFound'));
  }
