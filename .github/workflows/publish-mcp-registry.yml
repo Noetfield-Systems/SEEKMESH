@@ -1,0 +1,52 @@
+name: Publish SEEKMESH Agent Discovery MCP to Official Registry
+on:
+  push:
+    paths:
+      - 'server.json'
+      - 'integrations/mcp-server.js'
+      - '.github/workflows/publish-mcp-registry.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run SEEKMESH integration tests
+        run: |
+          npm install --no-audit --no-fund
+          npm test
+      - name: Wait for actual public stateless MCP endpoint
+        run: |
+          set -euo pipefail
+          READY=0
+          for i in $(seq 1 25); do
+            RESPONSE=$(curl -sS --max-time 12 -X POST https://seekmesh-web-production.up.railway.app/mcp \
+              -H 'Content-Type: application/json' \
+              -H 'Accept: application/json, text/event-stream' \
+              -H 'MCP-Protocol-Version: 2026-07-28' \
+              -H 'Mcp-Method: tools/list' \
+              -d '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{"_meta":{"io.modelcontextprotocol/protocolVersion":"2026-07-28","io.modelcontextprotocol/clientCapabilities":{},"io.modelcontextprotocol/clientInfo":{"name":"registry-check","version":"1.0.0"}}}}' || true)
+            if printf %s "$RESPONSE" | jq -e '.result.tools|any(.name=="search_sources")' >/dev/null 2>&1; then READY=1; break; fi
+            sleep 6
+          done
+          test "$READY" = 1 || { echo "::error::Public MCP endpoint did not pass protocol smoke"; exit 1; }
+      - name: Install official MCP publisher
+        run: |
+          curl -fsSL "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | tar xz mcp-publisher
+          chmod +x ./mcp-publisher
+      - name: OIDC authenticate as repository owner
+        run: ./mcp-publisher login github-oidc
+      - name: Publish remote-only SEEKMESH server
+        run: ./mcp-publisher publish server.json
+      - name: Read back official MCP Registry entry
+        run: |
+          set -euo pipefail
+          curl -fsS --max-time 15 'https://registry.modelcontextprotocol.io/v0.1/servers?search=seekmesh&version=latest' \
+            | jq -e '[.servers[]?.server.name]|any(.=="io.github.Noetfield-Systems/seekmesh")'

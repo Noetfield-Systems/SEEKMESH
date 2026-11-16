@@ -15,6 +15,7 @@ import { AgentAtlas } from './atlas/engine.js';
 import { PaidProofAPI } from './native/x402.js';
 import { NativeMissions } from './native/missions.js';
 import { RealmExecutor } from './realm-os/executor.js';
+import { SeekmeshMCP } from './integrations/mcp-server.js';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC = path.join(ROOT, 'public');
@@ -88,6 +89,7 @@ const paidProof=new PaidProofAPI(db,{baseURL:SITE_URL});
 const nativeMissions=new NativeMissions(db);
 const executor=new RealmExecutor(db,{os:realmOS,autonomy,atlas,migration,paidProof});
 realmOS.executor=executor;realmOS.paidProof=paidProof;realmOS.nativeMissions=nativeMissions;
+const mcp=new SeekmeshMCP({search:searchResources,atlas,realmOS,community,paidProof,missions:nativeMissions,baseURL:SITE_URL});
 
 const categories = ['All','AI & Models','Agent Infrastructure','Protocols','Communities','Builders','Search & Data'];
 const quests = [
@@ -204,7 +206,7 @@ export const server=http.createServer(async(req,res)=>{
       return j(res,200,out);
     }
     if(p==='/api/leaderboard')return j(res,200,{contributors:db.prepare('SELECT handle, SUM(amount) points, COUNT(*) approvedContributions FROM points GROUP BY lower(email) ORDER BY points DESC, approvedContributions DESC LIMIT 20').all()});
-    if(p==='/api/agent.json')return j(res,200,{name:'SeekMesh',description:'Community-curated discovery graph for humans and agents',api:{search:`${SITE_URL}/api/resources?q=`,categories:`${SITE_URL}/api/categories`,autonomy:`${SITE_URL}/api/autonomy/status`,version:'0.4.0'},note:'Source listings are descriptive and are not independently verified live.'});
+    if(p==='/api/agent.json')return j(res,200,{name:'SEEKMESH',description:'Independent Web3 discovery and agent trust index',version:'1.4.0',mcp:{transport:'streamable-http',protocolVersion:'2026-07-28',url:`${SITE_URL}/mcp`,toolPolicy:'public_read_only'},payments:{protocol:'x402-v2',network:'eip155:8453',proofQuote:`${SITE_URL}/api/proof/preview?id=1`,premium:`${SITE_URL}/api/proof/premium?id=1`},note:'Listings are not audited. Paid reports require verified stablecoin settlement; do not infer a live payment from a 402 challenge.'});
     if(p==='/robots.txt'){res.writeHead(200,{'content-type':'text/plain; charset=utf-8'});return res.end(`User-agent: *\nAllow: /\nSitemap: ${SITE_URL}/sitemap.xml\n`);}
     if(p==='/sitemap.xml'){res.writeHead(200,{'content-type':'application/xml; charset=utf-8'});return res.end(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>${SITE_URL}/</loc></url><url><loc>${SITE_URL}/explore</loc></url><url><loc>${SITE_URL}/manifesto</loc></url><url><loc>${SITE_URL}/whitepaper</loc></url><url><loc>${SITE_URL}/start</loc></url><url><loc>${SITE_URL}/app</loc></url><url><loc>${SITE_URL}/missions</loc></url><url><loc>${SITE_URL}/guilds</loc></url><url><loc>${SITE_URL}/market</loc></url><url><loc>${SITE_URL}/build</loc></url><url><loc>${SITE_URL}/os</loc></url><url><loc>${SITE_URL}/migrate</loc></url><url><loc>${SITE_URL}/atlas</loc></url></urlset>`);}
     if(p==='/api/admin/submissions'){if(!authenticate(req))return j(res,401,{error:'Unauthorized'});return j(res,200,{submissions:db.prepare('SELECT * FROM submissions ORDER BY id DESC LIMIT 200').all()});}
@@ -213,13 +215,15 @@ export const server=http.createServer(async(req,res)=>{
     if(safePublicFile(p,res))return;return j(res,404,{error:'Not found'});
   }
   if(req.method!=='POST')return j(res,405,{error:'Method not allowed'});
-  if(!['/api/join','/api/submit','/api/privacy-request','/api/admin/review','/api/migrate/import','/api/migrate/quests','/api/migrate/guild','/api/migrate/verify','/api/atlas/register','/api/atlas/verify','/api/native/campaigns/funding-receipt','/api/native/campaigns/payout-receipt','/api/admin/os/execute','/api/admin/atlas/sync','/api/admin/atlas/probe','/api/admin/os/control','/api/internal/os/tick','/api/admin/autonomy/control','/api/admin/autonomy/source','/api/admin/autonomy/candidate','/api/siwe/challenge','/api/siwe/verify','/api/mesh/register','/api/mesh/login','/api/mesh/logout','/api/mesh/checkin','/api/mesh/orientation','/api/mesh/submit','/api/mesh/redeem','/api/mesh/sponsor','/api/guilds/create','/api/guilds/join','/api/guilds/leave','/api/guilds/post','/api/guilds/report','/api/admin/guild-post','/api/admin/source-report','/api/admin/mesh/sponsor-action','/api/mesh/source-report','/api/mesh/wallet-challenge','/api/mesh/wallet-verify','/api/mesh/wallet-unlink','/api/telemetry','/api/internal/autonomy/tick','/api/internal/autonomy/claim','/api/internal/autonomy/report'].includes(p))return j(res,404,{error:'Not found'});
+  if(!['/mcp','/api/join','/api/submit','/api/privacy-request','/api/admin/review','/api/migrate/import','/api/migrate/quests','/api/migrate/guild','/api/migrate/verify','/api/atlas/register','/api/atlas/verify','/api/native/campaigns/funding-receipt','/api/native/campaigns/payout-receipt','/api/admin/os/execute','/api/admin/atlas/sync','/api/admin/atlas/probe','/api/admin/os/control','/api/internal/os/tick','/api/admin/autonomy/control','/api/admin/autonomy/source','/api/admin/autonomy/candidate','/api/siwe/challenge','/api/siwe/verify','/api/mesh/register','/api/mesh/login','/api/mesh/logout','/api/mesh/checkin','/api/mesh/orientation','/api/mesh/submit','/api/mesh/redeem','/api/mesh/sponsor','/api/guilds/create','/api/guilds/join','/api/guilds/leave','/api/guilds/post','/api/guilds/report','/api/admin/guild-post','/api/admin/source-report','/api/admin/mesh/sponsor-action','/api/mesh/source-report','/api/mesh/wallet-challenge','/api/mesh/wallet-verify','/api/mesh/wallet-unlink','/api/telemetry','/api/internal/autonomy/tick','/api/internal/autonomy/claim','/api/internal/autonomy/report'].includes(p))return j(res,404,{error:'Not found'});
   if(p.startsWith('/api/admin/')&&!authenticate(req))return j(res,401,{error:'Unauthorized'});
   if(['/api/internal/autonomy/tick','/api/internal/os/tick'].includes(p)&&!cronAuthenticate(req))return j(res,401,{error:'Unauthorized'});
   if(['/api/internal/autonomy/claim','/api/internal/autonomy/report'].includes(p)&&!workerAuthenticate(req))return j(res,401,{error:'Unauthorized'});
-  if(!p.startsWith('/api/admin/')&&!p.startsWith('/api/internal/')&&p!=='/api/telemetry'&&limited(req,p))return j(res,429,{error:'Too many submissions. Please try again later.'});
+  if(!p.startsWith('/api/admin/')&&!p.startsWith('/api/internal/')&&p!=='/api/telemetry'&&limited(req,p,p==='/mcp'?60:8))return j(res,429,{error:'Too many submissions. Please try again later.'});
   try{
-    const b=await body(req);if(b.website)return j(res,202,{ok:true,message:'Received.'});
+    const b=await body(req);
+    if(p==='/mcp')return await mcp.handle(req,res,b,SITE_URL);
+    if(b.website)return j(res,202,{ok:true,message:'Received.'});
     if(p==='/api/internal/autonomy/tick')return j(res,200,{ok:true,...autonomy.tick(),realmOS:realmOS.pulse()});
     if(p==='/api/internal/os/tick')return j(res,200,realmOS.pulse({force:true}));
     if(p==='/api/admin/os/control'){const out=realmOS.control(b);return j(res,out.error?422:200,out);}

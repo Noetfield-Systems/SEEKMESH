@@ -1,0 +1,13 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.Noetfield-Systems/seekmesh",
+  "title": "SEEKMESH Discovery Realm",
+  "description": "Web3 discovery and Agent Trust Atlas for MCP, ERC-8004 and x402, with source-linked expeditions, proof quotes and real funding receipts; no simulated rewards or paid outcomes.",
+  "version": "1.4.0",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://seekmesh-web-production.up.railway.app/mcp"
+    }
+  ]
+}
