@@ -82,7 +82,7 @@ const community=new CommunityLayer(db);
 const wallet=new WalletLink(db,SITE_URL);
 const realmOS=new RealmOS(db,{autonomy,mesh,community});
 const siwe=new RealmSIWE(db,SITE_URL,mesh,realmOS);
-const migration=new CampaignMigration(db);
+const migration=new CampaignMigration(db,{community});
 const atlas=new AgentAtlas(db,{autonomy});
 const paidProof=new PaidProofAPI(db,{baseURL:SITE_URL});
 const nativeMissions=new NativeMissions(db);
@@ -201,7 +201,7 @@ export const server=http.createServer(async(req,res)=>{
     if(safePublicFile(p,res))return;return j(res,404,{error:'Not found'});
   }
   if(req.method!=='POST')return j(res,405,{error:'Method not allowed'});
-  if(!['/api/join','/api/submit','/api/privacy-request','/api/admin/review','/api/migrate/import','/api/migrate/verify','/api/atlas/register','/api/atlas/verify','/api/native/campaigns/funding-receipt','/api/native/campaigns/payout-receipt','/api/admin/os/execute','/api/admin/atlas/sync','/api/admin/atlas/probe','/api/admin/os/control','/api/internal/os/tick','/api/admin/autonomy/control','/api/admin/autonomy/source','/api/admin/autonomy/candidate','/api/siwe/challenge','/api/siwe/verify','/api/mesh/register','/api/mesh/login','/api/mesh/logout','/api/mesh/checkin','/api/mesh/orientation','/api/mesh/submit','/api/mesh/redeem','/api/mesh/sponsor','/api/guilds/create','/api/guilds/join','/api/guilds/leave','/api/guilds/post','/api/guilds/report','/api/admin/guild-post','/api/admin/source-report','/api/admin/mesh/sponsor-action','/api/mesh/source-report','/api/mesh/wallet-challenge','/api/mesh/wallet-verify','/api/mesh/wallet-unlink','/api/telemetry','/api/internal/autonomy/tick','/api/internal/autonomy/claim','/api/internal/autonomy/report'].includes(p))return j(res,404,{error:'Not found'});
+  if(!['/api/join','/api/submit','/api/privacy-request','/api/admin/review','/api/migrate/import','/api/migrate/quests','/api/migrate/guild','/api/migrate/verify','/api/atlas/register','/api/atlas/verify','/api/native/campaigns/funding-receipt','/api/native/campaigns/payout-receipt','/api/admin/os/execute','/api/admin/atlas/sync','/api/admin/atlas/probe','/api/admin/os/control','/api/internal/os/tick','/api/admin/autonomy/control','/api/admin/autonomy/source','/api/admin/autonomy/candidate','/api/siwe/challenge','/api/siwe/verify','/api/mesh/register','/api/mesh/login','/api/mesh/logout','/api/mesh/checkin','/api/mesh/orientation','/api/mesh/submit','/api/mesh/redeem','/api/mesh/sponsor','/api/guilds/create','/api/guilds/join','/api/guilds/leave','/api/guilds/post','/api/guilds/report','/api/admin/guild-post','/api/admin/source-report','/api/admin/mesh/sponsor-action','/api/mesh/source-report','/api/mesh/wallet-challenge','/api/mesh/wallet-verify','/api/mesh/wallet-unlink','/api/telemetry','/api/internal/autonomy/tick','/api/internal/autonomy/claim','/api/internal/autonomy/report'].includes(p))return j(res,404,{error:'Not found'});
   if(p.startsWith('/api/admin/')&&!authenticate(req))return j(res,401,{error:'Unauthorized'});
   if(['/api/internal/autonomy/tick','/api/internal/os/tick'].includes(p)&&!cronAuthenticate(req))return j(res,401,{error:'Unauthorized'});
   if(['/api/internal/autonomy/claim','/api/internal/autonomy/report'].includes(p)&&!workerAuthenticate(req))return j(res,401,{error:'Unauthorized'});
@@ -219,6 +219,8 @@ export const server=http.createServer(async(req,res)=>{
       return j(res,out.error?422:200,out);
     }
     if(p==='/api/migrate/import'){const member=mesh.auth(req.headers.authorization);if(!member)return j(res,401,{error:'Sign in to import a campaign.'});const out=migration.import(member,b);return j(res,out.error?422:201,out);}
+    if(p==='/api/migrate/quests'){const member=mesh.auth(req.headers.authorization);if(!member)return j(res,401,{error:'Sign in to attach quest descriptions.'});const out=migration.addQuests(member,b);return j(res,out.error?422:200,out);}
+    if(p==='/api/migrate/guild'){const member=mesh.auth(req.headers.authorization);if(!member)return j(res,401,{error:'Sign in to link your verified project Guild.'});const out=migration.linkGuild(member,b.id);return j(res,out.error?422:200,out);}
     if(p==='/api/migrate/verify'){const member=mesh.auth(req.headers.authorization);if(!member)return j(res,401,{error:'Sign in to verify a project.'});const out=await migration.verify(member,b.id);return j(res,out.error?422:200,out);}
     if(p==='/api/atlas/register'){const member=mesh.auth(req.headers.authorization);if(!member)return j(res,401,{error:'Sign in to declare an agent.'});const out=atlas.register(member,b,wallet.addressFor(member.id));return j(res,out.error?422:201,out);}
     if(p==='/api/atlas/verify'){const member=mesh.auth(req.headers.authorization);if(!member)return j(res,401,{error:'Sign in to verify agent ownership.'});const out=await atlas.verifyERC8004(member,b,wallet.addressFor(member.id));return j(res,out.error?422:200,out);}
