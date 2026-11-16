@@ -167,7 +167,7 @@ export const server=http.createServer(async(req,res)=>{
     if(p==='/api/migrate/mine'){const user=mesh.auth(req.headers.authorization);return j(res,user?200:401,user?{imports:migration.mine(user)}:{error:'Sign in first.'});}
     if(/^\/api\/migrate\/\d+$/.test(p)){const detail=migration.detail(p.split('/').pop());return j(res,detail?200:404,detail||{error:'No publicly verified campaign.'});}
     if(p==='/api/atlas')return j(res,200,{agents:atlas.list({kind:clean(u.searchParams.get('kind'),16),q:clean(u.searchParams.get('q'),90)}),stats:atlas.stats()});
-    if(p==='/api/native/x402/status')return j(res,200,paidProof.publicStatus());
+    if(p==='/api/native/x402/status')return j(res,200,await paidProof.readiness());
     if(p==='/api/native/campaigns')return j(res,200,{campaigns:nativeMissions.list(),status:await nativeMissions.verifiedStatus(),claims:'Only onchain-confirmed funding and payout events count.'});
     if(p==='/api/proof/preview'){const proof=paidProof.preview(u.searchParams.get('id'));return j(res,proof?200:404,proof||{error:'Source missing.'});}
     if(p==='/api/proof/premium')return paidProof.serve(req,res,u);

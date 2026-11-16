@@ -55,6 +55,7 @@ test('x402 premium data never returned on unsigned request or absent receiving w
   assert.equal(disabled.status,503);
   assert.equal(paid.publicStatus().verifiedSettledRequests,0);
   process.env.SEEKMESH_USDC_RECEIVER='0x000000000000000000000000000000000000dEaD';
+  paid.compatibility=async()=>({compatible:true,reason:'unit_test_facilitator_supported'});
   const challenge=response();await paid.serve({headers:{}},challenge,new URL('https://seekmesh.example/api/proof/premium?id=1'));
   assert.equal(challenge.status,402);
   assert.ok(challenge.headers['payment-required']);
@@ -107,4 +108,18 @@ test('Galxe URL-only path creates zero fabricated quests; imported descriptions 
  assert.equal(flow.public()[0].guild_slug,'verified-project-guild');
  assert.equal(flow.linkGuild(owner,out.id).existing,true);
  db.close();
+});
+
+test('x402 refuses paid delivery from testnet-only facilitator for Base mainnet USDC',async()=>{
+ const db=dbFixture(),paid=new PaidProofAPI(db,{baseURL:'https://seekmesh.example'});
+ const saved=process.env.SEEKMESH_USDC_RECEIVER;
+ try{
+  process.env.SEEKMESH_USDC_RECEIVER='0x000000000000000000000000000000000000dEaD';
+  paid.compatibility=async()=>({compatible:false,reason:'testnet_only_facilitator'});
+  const res=response();
+  await paid.serve({headers:{}},res,new URL('https://seekmesh.example/api/proof/premium?id=1'));
+  assert.equal(res.status,503);
+  assert.match(res.body.compatibility,/testnet_only/);
+  assert.equal(db.prepare('SELECT COUNT(*) n FROM native_x402_receipts').get().n,0);
+ }finally{if(saved===undefined)delete process.env.SEEKMESH_USDC_RECEIVER;else process.env.SEEKMESH_USDC_RECEIVER=saved;db.close();}
 });
