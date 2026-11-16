@@ -209,7 +209,10 @@ export class RealmOS{
    expeditions:this.expedition(),metrics:m
   };
  }
- public(){const x=this.status();return {schema:x.schema,project:x.project,independentWeb3:true,enabled:x.enabled,paused:x.paused,schedulerRunning:x.schedulerRunning,logicalAgentRoles:x.logicalAgentRoles,physicalOSAgents:0,physicalDiscoveryExecutors:x.physicalDiscoveryExecutors,tokenIssued:false,usdcEscrowLive:false,x402PaymentsLive:false,lastPulse:x.lastPulse,goals:x.goals,phases:x.phases,expeditions:x.expeditions,metrics:x.metrics,roles:this.agents().map(a=>({name:a.display_name,department:a.department,mission:a.mission,state:a.state,logicalRole:true}))};}
+ signals(){
+  return this.db.prepare("SELECT id,url,name,description,category,score,last_seen_at FROM autonomy_candidates WHERE state='ready' AND http_status=200 AND score>=50 ORDER BY score DESC,last_seen_at DESC LIMIT 12").all().map(x=>({...x,state:'candidate_not_independently_verified',credited:false}));
+ }
+ public(){const x=this.status();return {schema:x.schema,project:x.project,independentWeb3:true,enabled:x.enabled,paused:x.paused,schedulerRunning:x.schedulerRunning,logicalAgentRoles:x.logicalAgentRoles,physicalOSAgents:0,physicalDiscoveryExecutors:x.physicalDiscoveryExecutors,tokenIssued:false,usdcEscrowLive:false,x402PaymentsLive:false,lastPulse:x.lastPulse,goals:x.goals,phases:x.phases,expeditions:x.expeditions,metrics:x.metrics,signals:this.signals(),roles:this.agents().map(a=>({name:a.display_name,department:a.department,mission:a.mission,state:a.state,logicalRole:true}))};}
  admin(){
   return {status:this.status(),agents:this.agents(),packets:this.db.prepare("SELECT * FROM realm_os_packets ORDER BY CASE status WHEN 'open' THEN 0 ELSE 1 END,priority DESC,id DESC LIMIT 100").all(),receipts:this.db.prepare('SELECT * FROM realm_os_receipts ORDER BY id DESC LIMIT 100').all(),expeditions:this.expedition()};
  }
