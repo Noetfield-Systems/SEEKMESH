@@ -50,3 +50,10 @@ The live, non-money features can attract users now. Mainnet monetary claims cann
 - **Embedded coordinator deployed in repository:** 10 logical agent capabilities, six proof-based phase measurements, founder goal control and workpacket evidence; one physical Railway service, no duplicate Company OS or separate cost center.
 - **Automated work:** 5-minute bounded pulse when service is running, weekly source expedition publication from measured category distribution, health/quality/community/crypto-readiness packets, source-scanned candidate feed clearly marked unverified.
 - **Not verified:** physical remote workers for each role, auto-editing code without an independently verified release runner, funded USDC missions, x402 completed payments, minted/tradable SEEK or real revenue. See docs/REALM_OS_V1.md.
+
+## Solidity verified-source update — Phase 4 readiness
+
+- `contracts/ExpeditionEscrow.sol`: **CODE_COMPILED / 6 of 6 Foundry tests PASS** (fee cap, pre-funding, verifier restriction, replay prevention, payout budget, deadline lock, partial/full refunds). No deployment address or real USDC transaction is proven.
+- Real deployment, treasury addresses, USDC mission funding, verifier operation and confirmed payout: **NOT YET DEPLOYED / 0 real transactions**.
+- x402 paid API and merchant wallet: **NOT DEPLOYED / 0 paid requests**.
+- Trusted GitHub source auto-indexing: **CODED / bounded**, conservatively selected from source+HTTP evidence and limited to three daily; successful source inclusion is not a security certification. See Realm OS docs.

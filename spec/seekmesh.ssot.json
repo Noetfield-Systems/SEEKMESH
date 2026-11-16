@@ -1,5 +1,5 @@
 {
-  "version": "1.1.0",
+  "version": "1.2.0",
   "date": "2026-11-15",
   "project": "SEEKMESH",
   "brand": "The Web3 Discovery Realm",
@@ -76,7 +76,20 @@
     "status": "DESIGNED_NOT_DEPLOYED",
     "paymentCollectedInProduct": false,
     "collateralizedRewards": false,
-    "traditionalCheckoutDefault": false
+    "traditionalCheckoutDefault": false,
+    "escrowReference": {
+      "status": "CODE_COMPILED_TESTED_NOT_DEPLOYED",
+      "solidity": "contracts/ExpeditionEscrow.sol",
+      "test": "test/ExpeditionEscrow.t.sol",
+      "foundryTestsPassed": 6,
+      "deployedAddress": null,
+      "realTransactionsVerified": 0,
+      "contractAudited": false
+    },
+    "x402": {
+      "status": "DESIGNED_NOT_DEPLOYED",
+      "paidRequestsVerified": 0
+    }
   },
   "rewards": {
     "daily": {
@@ -128,7 +141,8 @@
     "docs/COMPETITORS_GTM_V1.md",
     "docs/IMPLEMENTATION_LEDGER_V1.md",
     "docs/REALM_OS_V1.md",
-    "docs/WALLET_NATIVE_V1.md"
+    "docs/WALLET_NATIVE_V1.md",
+    "docs/ONCHAIN_ESCROW_V1.md"
   ],
   "benchmarks": [
     "Axie Infinity / Ronin",
@@ -149,6 +163,23 @@
     "independentPhysicalAgents": 0,
     "launchPhases": 6,
     "persistentEvidence": true,
-    "perWeekAutonomousExpedition": true
+    "perWeekAutonomousExpedition": true,
+    "autoCuration": {
+      "status": "CODED",
+      "enabledByDefault": true,
+      "maxPerDay": 3,
+      "requirements": [
+        "enabled GitHub search adapter",
+        "official GitHub public API provenance",
+        "GitHub repository URL",
+        ">=50 stars",
+        "updated <180 days",
+        "HTTP 200 and robots allowed",
+        "noindex false",
+        "fresh inspection <48h",
+        "score >=90"
+      ],
+      "securityAudited": false
+    }
   }
 }

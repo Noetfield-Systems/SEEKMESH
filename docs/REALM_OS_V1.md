@@ -58,3 +58,11 @@ The public UI shows actual progress computed at request time and the currently s
 5. Work packet can only be operator-attested with 30+ characters of evidence; it is NOT labelled externally verified.
 6. Wallet-first SIWE EOA verification uses one-time domain/chain-bound signature and emits a real session token; wrong domain/chain/nonce/expiry fail.
 7. npm test, GitHub Actions, Railway /api/health and actual public /os routes all succeed on the same commit.
+
+## Automated high-evidence GitHub source indexing (November 15 release)
+
+Realm OS has a bounded deterministic `autoCurate()` path used during its operating pulse. It can add at most three fresh, high-signal GitHub repositories per day **without blocking on a manual administrative review** only when all conditions hold: a source from an enabled official GitHub search adapter, exact repository URL on `github.com`, nonempty useful project description, score at least 90, at least 50 GitHub stars reported by the source API, recent source update within 180 days, successful HTTP/robots/noindex inspection within 48 hours, and no indexed duplicate. The inserted resource explicitly uses `source=autonomous-reviewed`, with an OS receipt labelled `github_api_and_http_only_not_security_audit`. These are listings, **not project endorsements, security approvals, investment advice, paid payouts or onchain attestations**. All candidates that fail narrow criteria still enter the bounded human/editor queue. Toggle via `REALM_OS_AUTO_CURATE=false`; tests include untrusted sources, HN candidates, low-stars and daily cap.
+
+## Stablecoin mission contract tested (not deployed)
+
+`contracts/ExpeditionEscrow.sol` implements funded ERC-20 mission budgets, unique claim proofs, a maximum 5% fee, verifier-controlled payout and unused reward+fee refund after deadline. Six Foundry adversarial tests passed in GitHub Actions. This contract has **not** been independently audited or deployed to a wallet/chain; do not mark a paid mission complete until a real transaction receipt is confirmed. See [ONCHAIN_ESCROW_V1.md](ONCHAIN_ESCROW_V1.md). Current Realm OS commerce metric remains zero.

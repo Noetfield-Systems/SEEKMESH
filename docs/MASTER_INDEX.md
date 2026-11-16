@@ -24,3 +24,5 @@ Machine-readable SSOT → implementation ledger for live claims → whitepaper f
 - **Verifiable research missions:** source-linked evidence standards + 1 real sponsor-funded stablecoin campaign.
 - **Agency:** meter first real x402 paid provenance/API job.
 - **World:** unique companion series, guild campaign pages and playable quests with action receipts, not fake game activity.
+
+11. [Onchain Escrow and Foundry Tests](ONCHAIN_ESCROW_V1.md) — funded stablecoin campaigns, unique proof payouts and sponsor refunds, code and tests only.

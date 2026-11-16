@@ -86,3 +86,10 @@ Operating model: a handful of physical workers process many logical shards; prio
 8. Metrics reconcile accepted entries, source clicks, payouts and onchain receipts; output never fabricates unique users.
 9. CI tests pass, browser tests on desktop/mobile pass, Railway production smoke passes on exact commit, and wallet tests pass on selected supported chain.
 10. Current production dataset and secrets are preserved by migration/rollout.
+
+## As-built release addendum — Realm OS and noncustodial mission escrow
+
+- `realm-os/engine.js` schedules real measured objectives, ten logical roles, job packets, audit receipts, weekly selected category expeditions and bounded high-signal GitHub auto-indexing.
+- `wallet/siwe.js` implements EOA-only EIP-4361 identity with nonce, domain, URI, chain ID, expiry and replay-safe session issuance. Contract wallets require ERC-1271 support not yet shipped.
+- `contracts/ExpeditionEscrow.sol` + `test/ExpeditionEscrow.t.sol` are **compiled and tested**, not deployed. They enforce sponsor pool funding, budget accounting, one receipt/proof per payout, verifier authority, deadline and fee reserve refunds. They are a first real onchain test substrate, not evidence of settled customer payments.
+- x402 premium API is still **designed only**, without a verified facilitator, merchant receiving address or receipt. Never mark x402 stage complete from a 402 mock response.

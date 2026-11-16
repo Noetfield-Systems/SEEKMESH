@@ -116,3 +116,9 @@ Pseudonymous member login with scrypt password hashes and session tokens; ledger
 ## v0.9 — Working Realm launch
 
 Live Guilds, member-source reports, wallet EIP-191 ownership proof, ledger-backed rewards, founder revenue follow-up and seven-day launch analytics are wired. Native token, collected revenue and external social distribution are not claimed. See [Launch operations](docs/LAUNCH_OPERATIONS_V0_9.md).
+
+## Native contract and automated source-indexing updates
+
+- [Mission Escrow reference implementation](contracts/ExpeditionEscrow.sol) and [Foundry adversarial tests](test/ExpeditionEscrow.t.sol). Six tests pass; no contract address, mainnet funds or payouts are claimed. [Runbook](docs/ONCHAIN_ESCROW_V1.md).
+- Realm OS now includes narrow automated source inclusion for high-signal, recently checked official-GitHub candidates. Hard maximum three daily, evidence receipts, source label `autonomous-reviewed`; no reward minting or security-audit claim.
+- Open-source participation remains free and independent. No Stripe checkout or unrelated company billing is connected.
