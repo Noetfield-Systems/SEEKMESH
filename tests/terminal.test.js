@@ -114,3 +114,36 @@ test('Release artifact includes every runtime module and the independent Web3 OS
  assert.match(client,/loadRealmOS/);
  assert.match(client,/signInWallet/);
 });
+
+test('Approved complete realm experience is a multi-section, honest and navigable launch product',()=>{
+ const html=content('public/terminal.html'),css=content('public/experience.css'),js=content('public/experience.js'),server=content('server.js');
+ for(const anchor of ['journey-title','destinations-title','home-leaderboard','home-guild-preview','realm-launch-title','realm-help-title','genesis','realm-stage','realm-scene','profile-handle','profile-drops']){
+  assert.ok(html.includes(anchor),'Missing required experience anchor: '+anchor);
+ }
+ for(const section of ['realm-journey','journey-grid','launch-gates','realm-feature-grid','realm-launch','realm-live-grid','realm-help','help-faq'])
+  assert.ok(html.includes(section),'Missing complete home page section '+section);
+ for(const route of ['explore','missions','guilds','build','rewards','market','atlas','os','genesis'])
+  assert.ok(html.includes('data-nav="'+route+'"'),'Unreachable path '+route);
+ assert.match(html,/Genesis Drops are non-transferable|Drops and Credits are in-app units/);
+ assert.doesNotMatch(html,/128,640|42,300|6,280|894,200|721,430/,'No fictitious hero or leaderboard statistics');
+ assert.match(js,/api\/genesis\/leaderboard/);
+ assert.match(js,/api\/guilds/);
+ assert.match(js,/SeekmeshExperience/);
+ assert.match(js,/data-experience-auth/);
+ assert.match(js,/data-action="signout"/);
+ assert.match(js,/data-action="siwe"/);
+ assert.match(js,/aria-haspopup/);
+ assert.match(js,/route-compass/);
+ assert.match(js,/MCP Registry/);
+ assert.match(css,/overflow-x:clip/);
+ assert.match(css,/realm-journey/);
+ assert.match(css,/realm-feature-grid/);
+ assert.match(css,/subscreen-header:first-child/);
+ assert.match(css,/@media\(max-width:520px\)/);
+ assert.match(server,/'\/experience\.js':'experience\.js'/);
+ assert.match(server,/'\/experience\.css':'experience\.css'/);
+ for(const file of ['public/experience.js','public/terminal.js','public/genesis.js']){
+  const r=spawnSync(process.execPath,['--check',path.join(root,file)],{encoding:'utf8'});
+  assert.equal(r.status,0,file+' syntax error: '+r.stderr);
+ }
+});
