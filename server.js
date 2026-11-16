@@ -10,6 +10,9 @@ import { CommunityLayer } from './community/engine.js';
 import { WalletLink } from './wallet/link.js';
 import { RealmOS } from './realm-os/engine.js';
 import { RealmSIWE } from './wallet/siwe.js';
+import { CampaignMigration } from './launch/migration.js';
+import { AgentAtlas } from './atlas/engine.js';
+import { PaidProofAPI } from './native/x402.js';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC = path.join(ROOT, 'public');
@@ -77,6 +80,9 @@ const community=new CommunityLayer(db);
 const wallet=new WalletLink(db,SITE_URL);
 const realmOS=new RealmOS(db,{autonomy,mesh,community});
 const siwe=new RealmSIWE(db,SITE_URL,mesh,realmOS);
+const migration=new CampaignMigration(db);
+const atlas=new AgentAtlas(db,{autonomy});
+const paidProof=new PaidProofAPI(db,{baseURL:SITE_URL});
 
 const categories = ['All','AI & Models','Agent Infrastructure','Protocols','Communities','Builders','Search & Data'];
 const quests = [
@@ -108,7 +114,7 @@ function safePublicFile(pathname,res) {
     res.writeHead(200,{'content-type':'image/webp','cache-control':'public, max-age=86400','x-content-type-options':'nosniff'});
     fs.createReadStream(file).pipe(res);return true;
   }
-  const files={'/':'terminal.html','/os':'terminal.html','/app':'terminal.html','/missions':'terminal.html','/guilds':'terminal.html','/market':'terminal.html','/build':'terminal.html','/partners':'terminal.html','/rewards':'terminal.html','/leaderboard':'terminal.html','/explore':'terminal.html','/old-home':'index.html','/manifesto':'index.html','/whitepaper':'whitepaper.html','/whitepaper.css':'whitepaper.css','/start':'start.html','/start.css':'start.css','/privacy':'privacy.html','/terms':'terms.html','/favicon.svg':'favicon.svg','/styles.css':'styles.css','/legal.css':'legal.css','/app.js':'app.js','/privacy.js':'privacy.js','/openapi.json':'openapi.json','/operator':'operator.html','/operator.js':'operator.js','/operator.css':'operator.css','/terminal.js':'terminal.js','/terminal.css':'terminal.css'};const f=files[pathname];if(!f)return false;const ext=path.extname(f);const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.json':'application/json; charset=utf-8'}[ext];res.writeHead(200,{'content-type':mime,'cache-control':ext==='.html'?'no-store':'public, max-age=300','x-content-type-options':'nosniff','content-security-policy':"default-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self'; img-src 'self' data: https:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",'referrer-policy':'strict-origin-when-cross-origin'});fs.createReadStream(path.join(PUBLIC,f)).pipe(res);return true;}
+  const files={'/':'terminal.html','/migrate':'terminal.html','/atlas':'terminal.html','/os':'terminal.html','/app':'terminal.html','/missions':'terminal.html','/guilds':'terminal.html','/market':'terminal.html','/build':'terminal.html','/partners':'terminal.html','/rewards':'terminal.html','/leaderboard':'terminal.html','/explore':'terminal.html','/old-home':'index.html','/manifesto':'index.html','/whitepaper':'whitepaper.html','/whitepaper.css':'whitepaper.css','/start':'start.html','/start.css':'start.css','/privacy':'privacy.html','/terms':'terms.html','/favicon.svg':'favicon.svg','/styles.css':'styles.css','/legal.css':'legal.css','/app.js':'app.js','/privacy.js':'privacy.js','/openapi.json':'openapi.json','/operator':'operator.html','/operator.js':'operator.js','/operator.css':'operator.css','/terminal.js':'terminal.js','/terminal.css':'terminal.css'};const f=files[pathname];if(!f)return false;const ext=path.extname(f);const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.json':'application/json; charset=utf-8'}[ext];res.writeHead(200,{'content-type':mime,'cache-control':ext==='.html'?'no-store':'public, max-age=300','x-content-type-options':'nosniff','content-security-policy':"default-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self'; img-src 'self' data: https:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",'referrer-policy':'strict-origin-when-cross-origin'});fs.createReadStream(path.join(PUBLIC,f)).pipe(res);return true;}
 async function llmSummary(query,rows){const base=process.env.LLM_BASE_URL,token=process.env.LLM_API_KEY,model=process.env.LLM_MODEL;if(!base||!token||!model)return null;try{const ctrl=new AbortController();const t=setTimeout(()=>ctrl.abort(),8000);let response;try{response=await fetch(`${base.replace(/\/$/,'')}/chat/completions`,{method:'POST',headers:{'content-type':'application/json','authorization':`Bearer ${token}`},body:JSON.stringify({model,temperature:0.1,max_tokens:180,messages:[{role:'system',content:'You are a factual discovery assistant. Summarize ONLY the supplied sources. Refer to source IDs as [1],[2]. Never claim to have visited sites or verified claims. If insufficient, say so. Max 70 words.'},{role:'user',content:JSON.stringify({query,sources:rows.map((r,i)=>({id:i+1,name:r.name,description:r.description,url:r.url}))})}]}),signal:ctrl.signal});}finally{clearTimeout(t);}if(!response.ok)return null;const obj=await response.json();return clean(obj.choices?.[0]?.message?.content,1200)||null;}catch{return null;}}
 
 export const server=http.createServer(async(req,res)=>{
@@ -119,6 +125,13 @@ export const server=http.createServer(async(req,res)=>{
     if(p==='/api/autonomy/status')return j(res,200,autonomy.status());
     if(p==='/api/os/status')return j(res,200,realmOS.public());
     if(p==='/api/os/expeditions')return j(res,200,{expeditions:realmOS.expedition(),notes:'Accepted sources receive existing off-chain XP and credits; no token rewards.'});
+    if(p==='/api/migrate')return j(res,200,{campaigns:migration.public(),ownerVerification:'DNS TXT',rewardBalancesImported:false});
+    if(p==='/api/migrate/mine'){const user=mesh.auth(req.headers.authorization);return j(res,user?200:401,user?{imports:migration.mine(user)}:{error:'Sign in first.'});}
+    if(/^\/api\/migrate\/\d+$/.test(p)){const detail=migration.detail(p.split('/').pop());return j(res,detail?200:404,detail||{error:'No publicly verified campaign.'});}
+    if(p==='/api/atlas')return j(res,200,{agents:atlas.list({kind:clean(u.searchParams.get('kind'),16),q:clean(u.searchParams.get('q'),90)}),stats:atlas.stats()});
+    if(p==='/api/native/x402/status')return j(res,200,paidProof.publicStatus());
+    if(p==='/api/proof/preview'){const proof=paidProof.preview(u.searchParams.get('id'));return j(res,proof?200:404,proof||{error:'Source missing.'});}
+    if(p==='/api/proof/premium')return paidProof.serve(req,res,u);
     if(p==='/api/admin/os'){if(!authenticate(req))return j(res,401,{error:'Unauthorized'});return j(res,200,realmOS.admin());}
     if(p==='/api/graph/summary')return j(res,200,{schema:'seekmesh.graph.v1',...getStats(),autonomy:autonomy.status(),categories:db.prepare('SELECT category,COUNT(*) AS count FROM resources GROUP BY category ORDER BY count DESC').all(),disclaimer:'Editorial seeds are not independent live verifications. Logical shards are not running server processes.'});
     if(p==='/api/graph/feed')return j(res,200,{schema:'seekmesh.discovery.v1',resources:db.prepare('SELECT name,url,description,category,tags,source,approved_at FROM resources ORDER BY approved_at DESC LIMIT 100').all(),disclaimer:'Descriptions are community/editorial; not financial endorsements.'});
@@ -161,7 +174,7 @@ export const server=http.createServer(async(req,res)=>{
     if(safePublicFile(p,res))return;return j(res,404,{error:'Not found'});
   }
   if(req.method!=='POST')return j(res,405,{error:'Method not allowed'});
-  if(!['/api/join','/api/submit','/api/privacy-request','/api/admin/review','/api/admin/os/control','/api/internal/os/tick','/api/admin/autonomy/control','/api/admin/autonomy/source','/api/admin/autonomy/candidate','/api/siwe/challenge','/api/siwe/verify','/api/mesh/register','/api/mesh/login','/api/mesh/logout','/api/mesh/checkin','/api/mesh/orientation','/api/mesh/submit','/api/mesh/redeem','/api/mesh/sponsor','/api/guilds/create','/api/guilds/join','/api/guilds/leave','/api/guilds/post','/api/guilds/report','/api/admin/guild-post','/api/admin/source-report','/api/admin/mesh/sponsor-action','/api/mesh/source-report','/api/mesh/wallet-challenge','/api/mesh/wallet-verify','/api/mesh/wallet-unlink','/api/telemetry','/api/internal/autonomy/tick','/api/internal/autonomy/claim','/api/internal/autonomy/report'].includes(p))return j(res,404,{error:'Not found'});
+  if(!['/api/join','/api/submit','/api/privacy-request','/api/admin/review','/api/migrate/import','/api/migrate/verify','/api/atlas/register','/api/atlas/verify','/api/admin/atlas/sync','/api/admin/atlas/probe','/api/admin/os/control','/api/internal/os/tick','/api/admin/autonomy/control','/api/admin/autonomy/source','/api/admin/autonomy/candidate','/api/siwe/challenge','/api/siwe/verify','/api/mesh/register','/api/mesh/login','/api/mesh/logout','/api/mesh/checkin','/api/mesh/orientation','/api/mesh/submit','/api/mesh/redeem','/api/mesh/sponsor','/api/guilds/create','/api/guilds/join','/api/guilds/leave','/api/guilds/post','/api/guilds/report','/api/admin/guild-post','/api/admin/source-report','/api/admin/mesh/sponsor-action','/api/mesh/source-report','/api/mesh/wallet-challenge','/api/mesh/wallet-verify','/api/mesh/wallet-unlink','/api/telemetry','/api/internal/autonomy/tick','/api/internal/autonomy/claim','/api/internal/autonomy/report'].includes(p))return j(res,404,{error:'Not found'});
   if(p.startsWith('/api/admin/')&&!authenticate(req))return j(res,401,{error:'Unauthorized'});
   if(['/api/internal/autonomy/tick','/api/internal/os/tick'].includes(p)&&!cronAuthenticate(req))return j(res,401,{error:'Unauthorized'});
   if(['/api/internal/autonomy/claim','/api/internal/autonomy/report'].includes(p)&&!workerAuthenticate(req))return j(res,401,{error:'Unauthorized'});
@@ -171,6 +184,12 @@ export const server=http.createServer(async(req,res)=>{
     if(p==='/api/internal/autonomy/tick')return j(res,200,{ok:true,...autonomy.tick(),realmOS:realmOS.pulse()});
     if(p==='/api/internal/os/tick')return j(res,200,realmOS.pulse({force:true}));
     if(p==='/api/admin/os/control'){const out=realmOS.control(b);return j(res,out.error?422:200,out);}
+    if(p==='/api/migrate/import'){const member=mesh.auth(req.headers.authorization);if(!member)return j(res,401,{error:'Sign in to import a campaign.'});const out=migration.import(member,b);return j(res,out.error?422:201,out);}
+    if(p==='/api/migrate/verify'){const member=mesh.auth(req.headers.authorization);if(!member)return j(res,401,{error:'Sign in to verify a project.'});const out=await migration.verify(member,b.id);return j(res,out.error?422:200,out);}
+    if(p==='/api/atlas/register'){const member=mesh.auth(req.headers.authorization);if(!member)return j(res,401,{error:'Sign in to declare an agent.'});const out=atlas.register(member,b,wallet.addressFor(member.id));return j(res,out.error?422:201,out);}
+    if(p==='/api/atlas/verify'){const member=mesh.auth(req.headers.authorization);if(!member)return j(res,401,{error:'Sign in to verify agent ownership.'});const out=await atlas.verifyERC8004(member,b,wallet.addressFor(member.id));return j(res,out.error?422:200,out);}
+    if(p==='/api/admin/atlas/sync'){const out=await atlas.syncMCP();return j(res,out.error?502:200,out);}
+    if(p==='/api/admin/atlas/probe'){const out=await atlas.probe(b.id);return j(res,out.error?422:200,out);}
     if(p==='/api/internal/autonomy/claim')return j(res,200,autonomy.claimRemote(clean(b.workerId,64)));
     if(p==='/api/internal/autonomy/report'){const r=autonomy.reportRemote(clean(b.workerId,64),Number(b.jobId),b.token,b.result);return j(res,r.error?409:200,r);}
     if(p==='/api/telemetry'){
