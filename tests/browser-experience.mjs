@@ -32,7 +32,7 @@ await scenario('Account menu opens without clipping and shows real login choices
  await page.locator('#close-modal').click();
 });
 await scenario('Interactive walkthrough helps users begin',async()=>{
- await page.locator('[data-experience-guide]').first().click();
+ await page.locator('#home [data-experience-guide]').first().click();
  await page.locator('#experience-guide-overlay').waitFor({state:'visible'});
  assert.match(await page.locator('#experience-guide-title').innerText(),/adventure/);
  await page.locator('[data-experience-guide-close]').first().click();
