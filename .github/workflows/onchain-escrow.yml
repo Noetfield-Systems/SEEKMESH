@@ -1,0 +1,22 @@
+name: SEEKMESH onchain escrow contract tests
+on:
+  push:
+    paths:
+      - 'contracts/**'
+      - 'test/**'
+      - 'foundry.toml'
+      - '.github/workflows/onchain-escrow.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  foundry:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+      - name: Compile escrow and run reward budget / replay / refund invariant tests
+        run: forge test -vv
