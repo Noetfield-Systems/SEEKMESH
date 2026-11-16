@@ -102,7 +102,7 @@ test('Web3 independent whitepaper and no unrelated SaaS pricing in active market
 
 test('Release artifact includes every runtime module and the independent Web3 OS is a real route',()=>{
  const docker=content('Dockerfile');
- for(const folder of ['autonomy','economy','community','wallet','realm-os','public'])assert.match(docker,new RegExp('COPY '+folder+' \\\\./'+folder));
+ for(const folder of ['autonomy','economy','community','wallet','realm-os','public'])assert.ok(docker.includes('COPY '+folder+' ./'+folder),folder+' is omitted from shipping image');
  const server=content('server.js');
  assert.match(server,/new RealmOS\(db/);
  assert.match(server,/'\/os':'terminal.html'/);
