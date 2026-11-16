@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#142c51"><meta name="description" content="SEEKMESH is an independent Web3-native discovery realm: explore AI projects, join guilds, verify sources, complete missions and build your place in the next internet."><meta property="og:title" content="SEEKMESH — The Web3 Discovery Realm"><meta property="og:type" content="website"><meta property="og:description" content="Discover and contribute real AI and Web3 projects, join builder guilds, complete missions and use earned credits."><meta property="og:image" content="https://seekmesh-web-production.up.railway.app/assets/seekmesh-social.png"><meta property="og:url" content="https://seekmesh-web-production.up.railway.app/"><meta name="fc:miniapp" content='{"version":"1","imageUrl":"https://seekmesh-web-production.up.railway.app/assets/seekmesh-social.png","button":{"title":"Explore SEEKMESH","action":{"type":"launch_miniapp","name":"SEEKMESH","url":"https://seekmesh-web-production.up.railway.app/"}}}'><meta name="twitter:image" content="https://seekmesh-web-production.up.railway.app/assets/seekmesh-social.png"><link rel="canonical" href="https://seekmesh-web-production.up.railway.app/"><meta name="twitter:card" content="summary_large_image"><link rel="icon" href="/favicon.svg"><link rel="stylesheet" href="/terminal.css"><script defer src="/terminal.js"></script><script defer src="/launch-upgrades.js"></script><script defer src="/genesis.js"></script><title>SEEKMESH — The Web3 Discovery Realm</title></head>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#142c51"><meta name="description" content="SEEKMESH is an independent Web3-native discovery realm: explore AI projects, join guilds, verify sources, complete missions and build your place in the next internet."><meta property="og:title" content="SEEKMESH — The Web3 Discovery Realm"><meta property="og:type" content="website"><meta property="og:description" content="Discover and contribute real AI and Web3 projects, join builder guilds, complete missions and use earned credits."><meta property="og:image" content="https://seekmesh-web-production.up.railway.app/assets/seekmesh-social.png"><meta property="og:url" content="https://seekmesh-web-production.up.railway.app/"><meta name="fc:miniapp" content='{"version":"1","imageUrl":"https://seekmesh-web-production.up.railway.app/assets/seekmesh-social.png","button":{"title":"Explore SEEKMESH","action":{"type":"launch_miniapp","name":"SEEKMESH","url":"https://seekmesh-web-production.up.railway.app/"}}}'><meta name="twitter:image" content="https://seekmesh-web-production.up.railway.app/assets/seekmesh-social.png"><link rel="canonical" href="https://seekmesh-web-production.up.railway.app/"><meta name="twitter:card" content="summary_large_image"><link rel="icon" href="/favicon.svg"><link rel="stylesheet" href="/terminal.css"><link rel="stylesheet" href="/experience.css"><script defer src="/terminal.js"></script><script defer src="/launch-upgrades.js"></script><script defer src="/genesis.js"></script><script defer src="/experience.js"></script><title>SEEKMESH — The Web3 Discovery Realm</title></head>
 <body>
 <div class="realm-shell">
  <header class="realm-header" aria-label="Main navigation">
@@ -17,36 +17,91 @@
   <div class="header-tools"><button id="open-search" class="icon-btn" title="Search the discovery index" aria-label="Search">⌕</button><button class="wallet-btn" id="wallet-connect">Connect Wallet <span>▣</span></button><button class="icon-btn notify-btn" id="open-node" title="My node" aria-label="My account">♙</button></div>
  </header>
  <main>
-  <section id="home" class="home-screen view is-visible" aria-label="The Discovery Realm">
-   <div class="realm-stage"><div class="sky-stars" aria-hidden="true"></div>
-    <div class="realm-scene" aria-hidden="true"></div>
-    <div class="hero-copy">
-     <div class="eyebrow">❧ &nbsp; DISCOVER &nbsp;·&nbsp; CONTRIBUTE &nbsp;·&nbsp; BUILD &nbsp;·&nbsp; EARN &nbsp; ❧</div>
-     <h1>SEEKMESH</h1>
-     <h2>The AI × Web3 <em>Discovery Universe</em></h2>
-     <p>A living, community-powered realm to discover, curate, build and earn from useful Web3, AI and real-world projects.</p>
-     <div class="hero-actions"><button class="btn btn-gold" data-action="enter">✦ &nbsp; Enter the Realm <span>➜</span></button><button class="btn btn-glass" data-action="learn">▷ &nbsp; How it works</button><button class="btn btn-glass" data-nav="genesis">✦ Season Zero Drops ↗</button></div>
-     <div class="hero-benefits"><div><span>♧</span> Realm OS<br>24/7</div><div><span>♧</span> Community<br>Powered</div><div><span>⬡</span> Real Rewards<br>& Utility</div><div><span>∞</span> Web3<br>Discovery</div></div>
+  <section id="home" class="home-screen view is-visible" aria-label="The living SEEKMESH discovery realm">
+    <div class="realm-stage launch-main-stage" id="realm-stage">
+      <div class="sky-stars" aria-hidden="true"></div><div class="realm-scene" aria-hidden="true"></div>
+      <div class="hero-copy">
+        <div class="eyebrow"><span class="eyebrow-diamond">✧</span> SEEKMESH · SEASON ZERO IS LIVE</div>
+        <h1>Discover the Realm.<br><em>Build your place in it.</em></h1>
+        <h2>Explore · Contribute · Grow · Earn in-app Drops</h2>
+        <p>Step into a living Web3 discovery world. Find real AI tools and projects, complete useful missions, join Guilds and save your progress. Your Season Zero journey begins with one free Explorer ID.</p>
+        <div class="hero-actions">
+          <button class="btn btn-gold" data-nav="genesis">✦ Claim Season Zero Access <span>➜</span></button>
+          <button class="btn btn-glass" data-action="enter">Create Account / Sign In</button>
+          <button class="btn btn-glass" data-action="siwe">◇ Connect Wallet</button>
+          <button class="btn btn-quiet" data-experience-guide>▷ How It Works</button>
+        </div>
+        <div class="hero-truth"><span>✧ Free to start</span><span>✓ Progress saved</span><span>◇ No token purchase required</span></div>
+      </div>
+      <aside class="profile-panel" aria-label="Your real Explorer identity and rewards">
+        <div class="profile-top"><img src="/assets/realm-avatar.webp" alt="Friendly SEEKMESH explorer companion" loading="eager"><div><span class="panel-kicker">YOUR EXPLORER</span><strong id="profile-handle">Your Explorer</strong><small id="wallet-short">Not connected</small><div class="profile-level" id="profile-level">Lv. 1 · Explorer</div></div></div>
+        <div class="level-track" aria-label="Progress to next level"><div id="profile-progress"></div></div>
+        <p class="progress-text" id="profile-xp-text">Join to start collecting XP</p>
+        <div class="balance-cards"><div><span>✧</span><small>MESH Credits</small><strong id="profile-credits">—</strong></div><div><span>✺</span><small>XP earned</small><strong id="profile-xp">—</strong></div><div><span>✦</span><small>Genesis Drops</small><strong id="profile-drops">—</strong></div></div>
+        <button class="season-link" data-nav="genesis"><span>✧</span><span><b>Season Zero · Active</b><small>Explore your Genesis Vault</small></span><strong>›</strong></button>
+        <div class="realm-profile-shortcuts"><button data-nav="node">My Profile</button><button data-nav="missions">My Missions</button></div>
+        <button class="btn btn-gold claim-btn" id="daily-claim">✦ Claim Daily In-App Reward</button>
+        <p class="profile-footnote">No tradable token is issued. Drops and Credits are in-app units, not guaranteed future token claims.</p>
+      </aside>
     </div>
-    <aside class="profile-panel" aria-label="Your Season 0 profile">
-     <div class="profile-top"><img src="/assets/realm-avatar.webp" alt="SEEKMESH explorer character"><div><strong id="profile-handle">Your Explorer</strong><small id="wallet-short">Not connected</small><div class="profile-level" id="profile-level">Lv. 1 · Explorer</div></div></div>
-     <div class="level-track" aria-label="Progress to next level"><div id="profile-progress"></div></div><p class="progress-text" id="profile-xp-text">Join to start collecting XP</p>
-     <div class="balance-cards"><div><span>✧</span><small>MESH Credits</small><strong id="profile-credits">—</strong></div><div><span>✺</span><small>XP earned</small><strong id="profile-xp">—</strong></div><div><span>✦</span><small>Genesis Drops</small><strong id="profile-drops">—</strong></div></div>
-     <button class="season-link" data-nav="genesis"><span>✧</span><span><b>Season Zero · LIVE</b><small>Internal Genesis Drops</small></span><strong>›</strong></button>
-     <div class="reward-art" aria-hidden="true">♛</div>
-     <button class="btn btn-gold claim-btn" id="daily-claim">♕ &nbsp; Claim Daily Reward</button><p class="profile-footnote">Off-chain points. No tradable token or cash claim.</p>
-    </aside>
-   </div>
-   <div class="realm-gates" aria-label="Explore the realm">
-    <button class="gate gate-missions" data-nav="missions"><span class="gate-art"><img src="/assets/realm-missions.webp" alt="Fantasy mission scroll"></span><span class="gate-title">Missions</span><span class="gate-desc">Complete quests,<br>earn XP & Credits</span><span class="gate-arrow">→</span></button>
-    <button class="gate gate-explore" data-nav="explore"><span class="gate-art"><img src="/assets/realm-explore.webp" alt="Fantasy explorer compass"></span><span class="gate-title">Explore</span><span class="gate-desc">Discover projects,<br>tools & opportunities</span><span class="gate-arrow">→</span></button>
-    <button class="gate gate-guilds" data-nav="guilds"><span class="gate-art"><img src="/assets/realm-guilds.webp" alt="Guild banner and fantasy tent"></span><span class="gate-title">Guilds</span><span class="gate-desc">Explore real<br>communities</span><span class="gate-arrow">→</span></button>
-    <button class="gate gate-build" data-nav="build"><span class="gate-art"><img src="/assets/realm-build.webp" alt="Holographic construction cubes"></span><span class="gate-title">Build</span><span class="gate-desc">List your project,<br>gain visibility</span><span class="gate-arrow">→</span></button>
-    <button class="gate gate-rewards" data-nav="rewards"><span class="gate-art"><img src="/assets/realm-rewards.webp" alt="Glowing treasure chest"></span><span class="gate-title">Rewards</span><span class="gate-desc">Use earned credits<br>for real utility</span><span class="gate-arrow">→</span></button>
-    <button class="gate gate-market" data-nav="market"><span class="gate-art"><img src="/assets/realm-market.webp" alt="Fantasy marketplace stall"></span><span class="gate-title">Market</span><span class="gate-desc">Project spotlights<br>& partnerships</span><span class="gate-arrow">→</span></button>
-   </div>
-   <div class="realm-pulse-live" id="realm-pulse-live" aria-live="polite">Loading live world status…</div>
-   <div class="realm-stats"><div class="live-badge"><i></i> <em>Live in the Realm</em></div><div><b id="metric-nodes">—</b><small>Explorers</small></div><div><b id="metric-resources">—</b><small>Projects & sources</small></div><div><b id="metric-actions">—</b><small>Missions completed</small></div><div><b id="metric-credits">—</b><small>Credits spent</small></div><div class="stats-join"><button data-action="enter">Join the first explorers &nbsp; →</button></div></div>
+    <div class="realm-stats launch-realm-facts" aria-label="Actual SEEKMESH activity">
+      <div class="live-badge"><i></i> <em>Live Realm Activity</em></div>
+      <div><b id="metric-nodes">—</b><small>Real Explorers</small></div>
+      <div><b id="metric-resources">—</b><small>Indexed Sources</small></div>
+      <div><b id="metric-actions">—</b><small>Verified Activities</small></div>
+      <div><b id="metric-credits">—</b><small>Credits Redeemed</small></div>
+      <div class="stats-join"><button data-nav="genesis">Start Season Zero →</button></div>
+    </div>
+    <div class="realm-pulse-live" id="realm-pulse-live" aria-live="polite">Loading the living world from real records…</div>
+    <div class="realm-content-wrap">
+      <section class="realm-journey" id="start-here" aria-labelledby="journey-title">
+        <div class="realm-section-top"><div><div class="section-kicker">✧ YOUR FIRST FOUR STEPS</div><h2 id="journey-title">Your journey begins here</h2></div><p>No crypto experience needed. A real account gives you a persistent profile; a wallet connects your onchain identity when you choose.</p></div>
+        <div class="journey-grid">
+          <button class="journey-card" data-action="enter"><span class="journey-index">01</span><span class="journey-symbol">♙</span><strong>Create Your Explorer ID</strong><span>Sign up free or sign in. Your XP, Drops, invites and missions stay saved.</span><small>START WITH AN ACCOUNT ↗</small></button>
+          <button class="journey-card" data-action="siwe"><span class="journey-index">02</span><span class="journey-symbol">◇</span><strong>Connect Your Wallet</strong><span>Link a supported EVM wallet with a signature. No gas, purchase or transfer.</span><small>VERIFY YOUR WALLET ↗</small></button>
+          <button class="journey-card journey-featured" data-nav="genesis"><span class="journey-index">03</span><span class="journey-symbol">✦</span><strong>Enter Season Zero</strong><span>See your personal Genesis Vault and claim internal Drops for eligible milestones.</span><small>VIEW GENESIS VAULT ↗</small></button>
+          <button class="journey-card" data-nav="missions"><span class="journey-index">04</span><span class="journey-symbol">◎</span><strong>Complete Real Missions</strong><span>Discover useful sources, bring qualified friends and build your Guild.</span><small>EXPLORE MISSIONS ↗</small></button>
+        </div>
+      </section>
+      <section class="realm-destinations" aria-labelledby="destinations-title">
+        <div class="realm-section-top"><div><div class="section-kicker">✦ THE WORLD IS YOURS</div><h2 id="destinations-title">Seven ways to explore</h2></div><p>Every destination has a purpose. Choose a path, follow the built-in guidance and watch your progress update.</p></div>
+        <div class="realm-gates launch-gates" aria-label="SEEKMESH destinations">
+          <button class="gate gate-explore" data-nav="explore"><span class="gate-art"><img src="/assets/realm-explore.webp" alt="Fantasy exploration compass" loading="lazy"></span><span class="gate-tag">DISCOVER</span><span class="gate-title">Explore</span><span class="gate-desc">Find source-linked AI and Web3 tools, protocols and projects.</span><span class="gate-arrow" aria-hidden="true">↗</span></button>
+          <button class="gate gate-missions" data-nav="missions"><span class="gate-art"><img src="/assets/realm-missions.webp" alt="Quest mission scroll" loading="lazy"></span><span class="gate-tag">CONTRIBUTE</span><span class="gate-title">Missions</span><span class="gate-desc">Complete meaningful quests and earn saved in-app rewards.</span><span class="gate-arrow" aria-hidden="true">↗</span></button>
+          <button class="gate gate-guilds" data-nav="guilds"><span class="gate-art"><img src="/assets/realm-guilds.webp" alt="Guild banner and magical tent" loading="lazy"></span><span class="gate-tag">BELONG</span><span class="gate-title">Guilds</span><span class="gate-desc">Find collaborators, create a Guild and grow together.</span><span class="gate-arrow" aria-hidden="true">↗</span></button>
+          <button class="gate gate-build" data-nav="build"><span class="gate-art"><img src="/assets/realm-build.webp" alt="Glowing holographic builder blueprint" loading="lazy"></span><span class="gate-tag">CREATE</span><span class="gate-title">Build</span><span class="gate-desc">Submit original work and earn recognition after review.</span><span class="gate-arrow" aria-hidden="true">↗</span></button>
+          <button class="gate gate-rewards" data-nav="rewards"><span class="gate-art"><img src="/assets/realm-rewards.webp" alt="Treasure chest with glowing rewards" loading="lazy"></span><span class="gate-tag">PROGRESS</span><span class="gate-title">Rewards</span><span class="gate-desc">Track your Drops and spend earned Credits on utility.</span><span class="gate-arrow" aria-hidden="true">↗</span></button>
+          <button class="gate gate-market" data-nav="market"><span class="gate-art"><img src="/assets/realm-market.webp" alt="Magical Web3 merchant marketplace" loading="lazy"></span><span class="gate-tag">CONNECT</span><span class="gate-title">Market</span><span class="gate-desc">Find real projects, sponsor expeditions and discover partnerships.</span><span class="gate-arrow" aria-hidden="true">↗</span></button>
+          <button class="gate gate-atlas" data-nav="atlas"><span class="gate-art"><span class="gate-icon-art">⬡</span></span><span class="gate-tag">VERIFY</span><span class="gate-title">Agent Atlas</span><span class="gate-desc">Compare MCP, ERC-8004 and x402 agent capabilities and evidence.</span><span class="gate-arrow" aria-hidden="true">↗</span></button>
+        </div>
+      </section>
+      <section class="realm-feature-grid" aria-label="Agent Atlas and Realm OS explained">
+        <article class="realm-feature realm-feature-atlas"><div class="feature-art feature-atlas-art" aria-hidden="true"><span>⬡</span><i>✧</i></div><div class="feature-copy"><div class="section-kicker">⬡ AGENT ATLAS · DISCOVERY & EVIDENCE</div><h2>Find agents you can<br><em>actually investigate.</em></h2><p>Discover real MCP tools, ERC-8004 identities and x402 services. See registry origin, wallet ownership evidence and HTTP observations separately—without imaginary trust scores.</p><button class="btn btn-gold" data-nav="atlas">Explore Agent Atlas ↗</button></div></article>
+        <article class="realm-feature realm-feature-os"><div class="feature-art feature-os-art" aria-hidden="true"><img src="/assets/realm-build.webp" alt="" loading="lazy"></div><div class="feature-copy"><div class="section-kicker">✧ REALM OS · THE WORLD'S WORKING ENGINE</div><h2>A living operating layer<br><em>behind every discovery.</em></h2><p>Realm OS coordinates source discovery, quality checks and Guild opportunities. See actual completed work, evidence receipts and the next Expedition.</p><button class="btn btn-gold" data-nav="os">Inside Realm OS ↗</button></div></article>
+      </section>
+      <section class="realm-launch" aria-labelledby="realm-launch-title">
+        <div class="realm-launch-copy"><span class="section-kicker">✦ SEASON ZERO · EARLY EXPLORERS</span><h2 id="realm-launch-title">Claim your place.<br><em>Play, invite and grow.</em></h2><p>Your early activity builds a saved Explorer history: complete missions, qualify referrals and grow a real Guild. In-app Drops are credited when eligible actions are recorded.</p><div class="launch-checklist"><span>✧ Free Explorer ID</span><span>♙ Real referral tracking</span><span>◎ XP & internal Drops</span></div><div class="launch-actions"><button class="btn btn-gold" data-nav="genesis">✦ Enter Season Zero →</button><button class="btn btn-glass" data-action="invite">Invite a Builder ↗</button></div><small>Genesis Drops are non-transferable internal points, not issued SEEK tokens or a future token deposit promise.</small></div><div class="realm-launch-art" aria-hidden="true"><img src="/assets/realm-guilds.webp" alt="" loading="lazy"></div>
+      </section>
+      <section class="realm-live-section" aria-label="Real leaderboard, Guilds and missions">
+        <div class="realm-section-top"><div><span class="section-kicker">◎ THE REALM IS ACTIVE</span><h2>Discover what's happening</h2></div><p>Real records, real opportunities. The public leaderboard excludes every synthetic QA persona.</p></div>
+        <div class="realm-live-grid">
+          <article class="realm-live-card home-board"><div class="live-card-heading"><span class="section-kicker">♕ REAL EXPLORER RANKING</span><h3>Top Explorers</h3><p>Genesis Season Zero · real accounts only</p></div><div id="home-leaderboard" class="home-board-rows" aria-live="polite"><p>Loading real rankings…</p></div><button class="btn btn-quiet" data-nav="genesis">Open Full Scoreboard ↗</button></article>
+          <article class="realm-live-card home-guilds"><div class="live-card-heading"><span class="section-kicker">♜ BUILD TOGETHER</span><h3>Find your Guild</h3><p>Real founders, contributors and communities</p></div><div class="home-live-art"><img src="/assets/realm-guilds.webp" alt="Magical Guild encampment" loading="lazy"></div><div id="home-guild-preview"><p>Loading the current Guild network…</p></div><button class="btn btn-gold" data-nav="guilds">Explore Guilds →</button></article>
+          <article class="realm-live-card home-missions"><div class="live-card-heading"><span class="section-kicker">◎ THIS WEEK'S MISSIONS</span><h3>Start contributing</h3><p>Useful work, not empty clicks</p></div><div class="quick-mission"><span class="quick-mission-icon">✦</span><div><b>Activate Explorer</b><small>Save your Season Zero identity · +3 Drops</small></div><button data-action="enter">↗</button></div><div class="quick-mission"><span class="quick-mission-icon">◎</span><div><b>Daily Discovery</b><small>Check in and keep growing · +1 Drop</small></div><button data-action="daily">↗</button></div><div class="quick-mission"><span class="quick-mission-icon">⬡</span><div><b>Map a useful source</b><small>Accepted contributions · +12 Drops</small></div><button data-action="submit">↗</button></div><button class="btn btn-quiet" data-nav="missions">See All Real Missions ↗</button></article>
+        </div>
+      </section>
+      <section class="realm-help" aria-labelledby="realm-help-title">
+        <div class="help-companion"><div class="help-mascot" role="img" aria-label="SEEKMESH explorer companions"></div><div class="section-kicker">◇ EXPLORER'S GUIDE</div><h2 id="realm-help-title">Need a guide?<br><em>Start here.</em></h2><p>Every part of the Realm has a purpose. Get a direct answer and go straight to the right place.</p><button class="btn btn-glass" data-experience-guide>Open Guided Walkthrough ↗</button></div>
+        <div class="help-faq">
+          <details open><summary>Where should I begin?</summary><p>Create your free Explorer account, enter Season Zero, and try Daily Discovery. Everything you earn is saved. <button data-nav="genesis">Enter Genesis ↗</button></p></details>
+          <details><summary>How do I sign in or sign out?</summary><p>Use the account menu at the top right. Choose Create Account, Sign In or Sign Out. A verified EVM wallet can also sign you in. <button data-action="enter">Open account ↗</button></p></details>
+          <details><summary>What happens when I connect a wallet?</summary><p>Your wallet signs a readable message to prove ownership. Signing in requires no transaction, token purchase or gas. An optional wallet link does not transfer funds. <button data-action="siwe">Connect wallet ↗</button></p></details>
+          <details><summary>Are Genesis Drops a token airdrop?</summary><p>No. Drops are internal activity points today. No SEEK token has been issued, and earning Drops does not guarantee a future token allocation. <button data-nav="genesis">View the rules ↗</button></p></details>
+          <details><summary>What is Agent Atlas—and how can I use it?</summary><p>It's a discovery graph for AI agents and tools. Search source-linked MCP, ERC-8004 and x402 entries; distinguish registry listings from actual ownership and endpoint checks. <button data-nav="atlas">Explore Agent Atlas ↗</button></p></details>
+          <details><summary>How can I earn through referrals and missions?</summary><p>Invite qualified contributors. You receive internal bonus points when your invitee submits a source that is reviewed and accepted—not just for registration. <button data-nav="missions">Open Missions ↗</button></p></details>
+        </div>
+      </section>
+    </div>
   </section>
 
   <section class="subscreen view genesis-view" id="genesis" aria-label="SEEKMESH Genesis Season Zero">
@@ -101,7 +156,7 @@
 </section>
 <section class="subscreen view" id="node" aria-label="Your explorer profile"><div class="subscreen-header"><div><span class="section-kicker">YOUR EXPLORER IDENTITY</span><h2>Your Realm Profile</h2><p>View real ledger-backed XP, internal Credits, reviewed projects and your invite link.</p></div></div><div class="realm-panel" id="node-profile">Sign in to activate your explorer identity.</div><div id="node-history" class="history-list"></div></section>
  </main>
- <footer class="realm-footer"><span>SEEKMESH · THE DISCOVERY REALM</span><div><a href="/whitepaper">Whitepaper</a><a href="/manifesto">Protocol</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="https://github.com/Noetfield-Systems/SEEKMESH" target="_blank" rel="noopener noreferrer">GitHub</a></div><span class="footer-truth">Real activity · No simulated players</span></footer>
+ <footer class="realm-footer"><span>SEEKMESH · THE DISCOVERY REALM</span><div><a href="/whitepaper">Whitepaper</a><a href="/manifesto">Protocol</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><button class="footer-guide" data-experience-guide type="button">Getting Started</button></div><span class="footer-truth">Real activity · No simulated players</span></footer>
 </div>
 <div id="modal-overlay" class="modal-overlay" hidden><div role="dialog" aria-modal="true" class="modal"><button class="modal-x" id="close-modal" aria-label="Close">×</button><span class="section-kicker" id="modal-kicker">YOUR REALM IDENTITY</span><h2 id="modal-heading">Enter the Discovery Realm</h2><p id="modal-intro">Create an explorer account to earn progress through verified work.</p><div id="modal-content"></div><div id="modal-error" class="modal-error" role="alert" hidden></div></div></div><div id="toast" class="toast" role="status" aria-live="polite"></div>
 </body></html>

@@ -11,6 +11,8 @@ on:
       - 'public/terminal.html'
       - 'public/launch-upgrades.js'
       - 'public/genesis.js'
+      - 'public/experience.js'
+      - 'public/experience.css'
       - 'public/operator.js'
       - 'economy/**'
       - 'launch/**'
@@ -47,6 +49,12 @@ jobs:
                grep -q 'id="os"' /tmp/seekmesh-home.html &&
                grep -q 'id="form-migrate"' /tmp/seekmesh-home.html &&
                grep -q 'id="genesis"' /tmp/seekmesh-home.html &&
+               grep -q 'id="journey-title"' /tmp/seekmesh-home.html &&
+               grep -q 'id="home-leaderboard"' /tmp/seekmesh-home.html &&
+               curl -fsS --max-time 15 "$BASE/experience.js" -o /tmp/seekmesh-experience.js &&
+               grep -q 'SeekmeshExperience' /tmp/seekmesh-experience.js &&
+               curl -fsS --max-time 15 "$BASE/experience.css" -o /tmp/seekmesh-experience.css &&
+               grep -q 'realm-feature-grid' /tmp/seekmesh-experience.css &&
                curl -fsS --max-time 15 "$BASE/genesis.js" -o /tmp/seekmesh-genesis.js &&
                grep -q 'SeekmeshGenesis' /tmp/seekmesh-genesis.js &&
                curl -fsS --max-time 15 "$BASE/api/genesis/status" -o /tmp/seekmesh-genesis-status.json &&
