@@ -5,7 +5,7 @@
 (()=>{
  'use strict';
  const $=id=>document.getElementById(id);
- const secure=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;':'&quot;',"'":'&#39;'}[c]));
+ const secure=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const n=v=>Number(v??0).toLocaleString('en-US');
  const guideCards=[
   {title:'Create a free Explorer ID',description:'Choose a unique handle and password or use Sign in with Ethereum. Your progress is stored in your account.',label:'Create Account',action:'auth'},
