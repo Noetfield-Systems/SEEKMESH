@@ -103,6 +103,23 @@ function clean(s, len=200) { return String(s || '').trim().replace(/[\u0000-\u00
 function emailValid(s){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s) && s.length < 255; }
 function urlClean(s){try { const u=new URL(String(s)); if(!['http:','https:'].includes(u.protocol) || !u.hostname.includes('.') || u.username || u.password)return null;u.hash='';return u.toString();}catch{return null;} }
 async function body(req) { let b=''; for await(const chunk of req){b+=chunk.toString();if(b.length>16000) throw new Error('Payload too large');}return JSON.parse(b||'{}'); }
+
+function farcasterManifest(){
+ const base=SITE_URL;
+ const miniapp={version:'1',name:'SEEKMESH',subtitle:'The Web3 Discovery Realm',description:'Discover useful Web3 and AI projects, map real sources, explore guilds and native expeditions.',tagline:'Discover. Prove. Build.',iconUrl:base+'/assets/seekmesh-icon.png',homeUrl:base+'/',imageUrl:base+'/assets/seekmesh-social.png',heroImageUrl:base+'/assets/seekmesh-social.png',ogImageUrl:base+'/assets/seekmesh-social.png',ogTitle:'SEEKMESH Discovery Realm',ogDescription:'A living world of verified discovery.',buttonTitle:'Enter Realm',splashImageUrl:base+'/assets/seekmesh-splash.png',splashBackgroundColor:'#142c51',primaryCategory:'social',tags:['web3','discovery','quests','agents','guilds']};
+ const manifest={miniapp};
+ try{const a=JSON.parse(process.env.FARCASTER_ACCOUNT_ASSOCIATION||'null');if(a&&typeof a.header==='string'&&typeof a.payload==='string'&&typeof a.signature==='string'&&a.header.length>12&&a.payload.length>12&&a.signature.length>12)manifest.accountAssociation=a}catch{}
+ return manifest;
+}
+function htmlEscape(text){return String(text??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function expeditionCard(id){
+ const exp=realmOS.expedition().find(x=>Number(x.id)===Number(id));if(!exp)return null;
+ const url=SITE_URL+'/expedition/'+exp.id,app=SITE_URL+'/os?expedition='+exp.id;
+ const embed={version:'1',imageUrl:SITE_URL+'/assets/seekmesh-social.png',button:{title:'Enter Expedition',action:{type:'launch_miniapp',name:'SEEKMESH',url:app}}};
+ const title=exp.category+' — SEEKMESH Expedition';
+ return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#142c51"><title>'+htmlEscape(title)+'</title><meta property="og:title" content="'+htmlEscape(title)+'"><meta property="og:description" content="Help map real sources. Rewards only on accepted contributions. No unissued token claims."><meta property="og:image" content="'+SITE_URL+'/assets/seekmesh-social.png"><meta name="fc:miniapp" content="'+htmlEscape(JSON.stringify(embed))+'"><link rel="stylesheet" href="/whitepaper.css"></head><body><header class="bar"><div class="width header-inner"><a href="/">◇ SEEKMESH</a><a href="/whitepaper">Protocol ↗</a></div></header><main class="closing"><div class="width"><div class="kicker">SEASON ZERO · VERIFIED DISCOVERY</div><h2>'+htmlEscape(exp.category)+'<em> Expedition</em></h2><p>'+Number(exp.accepted)+' of '+Number(exp.target)+' reviewed contributions recorded. Reward: existing in-app XP and Credits after acceptance; no USDC or SEEK claim implied.</p><a class="gold" href="'+htmlEscape(app)+'">Join this Expedition ↗</a></div></main></body></html>';
+}
+
 function getStats() { return {resources: db.prepare('SELECT COUNT(*) n FROM resources').get().n, foundingMembers: db.prepare('SELECT COUNT(*) n FROM waitlist').get().n, communityApproved: db.prepare("SELECT COUNT(*) n FROM resources WHERE source='community'").get().n, earnedPoints: db.prepare('SELECT COALESCE(SUM(amount),0) n FROM points').get().n}; }
 function referralCode(){return crypto.randomBytes(6).toString('hex').toUpperCase();}
 function workerAuthenticate(req){const k=process.env.AUTONOMY_WORKER_KEY;if(!k||typeof req.headers['x-worker-key']!=='string')return false;const a=Buffer.from(k),b=Buffer.from(req.headers['x-worker-key']);return a.length===b.length&&crypto.timingSafeEqual(a,b);}
@@ -113,10 +130,10 @@ function safePublicFile(pathname,res) {
   // Allowlist original artwork assets; no dynamic filesystem paths or directory traversal.
   if(pathname.startsWith('/assets/')){
     const asset=pathname.slice('/assets/'.length);
-    if(!/^realm-(?:hero|avatar|missions|explore|guilds|build|rewards|market)\.webp$/.test(asset))return false;
+    if(!/^(?:realm-(?:hero|avatar|missions|explore|guilds|build|rewards|market)\.webp|seekmesh-(?:icon|splash|social)\.png)$/.test(asset))return false;
     const file=path.join(PUBLIC,'assets',asset);
     if(!fs.existsSync(file))return false;
-    res.writeHead(200,{'content-type':'image/webp','cache-control':'public, max-age=86400','x-content-type-options':'nosniff'});
+    res.writeHead(200,{'content-type':asset.endsWith('.png')?'image/png':'image/webp','cache-control':'public, max-age=86400','x-content-type-options':'nosniff'});
     fs.createReadStream(file).pipe(res);return true;
   }
   const files={'/':'terminal.html','/migrate':'terminal.html','/atlas':'terminal.html','/os':'terminal.html','/app':'terminal.html','/missions':'terminal.html','/guilds':'terminal.html','/market':'terminal.html','/build':'terminal.html','/partners':'terminal.html','/rewards':'terminal.html','/leaderboard':'terminal.html','/explore':'terminal.html','/old-home':'index.html','/manifesto':'index.html','/whitepaper':'whitepaper.html','/whitepaper.css':'whitepaper.css','/start':'start.html','/start.css':'start.css','/privacy':'privacy.html','/terms':'terms.html','/favicon.svg':'favicon.svg','/styles.css':'styles.css','/legal.css':'legal.css','/app.js':'app.js','/privacy.js':'privacy.js','/openapi.json':'openapi.json','/operator':'operator.html','/operator.js':'operator.js','/operator.css':'operator.css','/terminal.js':'terminal.js','/terminal.css':'terminal.css'};const f=files[pathname];if(!f)return false;const ext=path.extname(f);const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.json':'application/json; charset=utf-8'}[ext];res.writeHead(200,{'content-type':mime,'cache-control':ext==='.html'?'no-store':'public, max-age=300','x-content-type-options':'nosniff','content-security-policy':"default-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self'; img-src 'self' data: https:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",'referrer-policy':'strict-origin-when-cross-origin'});fs.createReadStream(path.join(PUBLIC,f)).pipe(res);return true;}
@@ -126,6 +143,10 @@ export const server=http.createServer(async(req,res)=>{
   const u=new URL(req.url,`http://${req.headers.host||'localhost'}`),p=u.pathname;
   if(req.method==='GET'){
     if(p==='/api/health')return j(res,200,{status:'ok',database:'sqlite',version:'0.5.0'});
+    if(p==='/.well-known/farcaster.json')return j(res,200,farcasterManifest(),{'cache-control':'public,max-age=300'});
+    if(p==='/api/farcaster/status')return j(res,200,{manifestUrl:SITE_URL+'/.well-known/farcaster.json',associated:!!farcasterManifest().accountAssociation,domain:new URL(SITE_URL).hostname,publishing:'account association must be signed by the domain owner; unsigned metadata alone does not publish a Mini App'});
+    if(/^\/expedition\/\d+$/.test(p)){const card=expeditionCard(p.split('/').pop());if(!card)return j(res,404,{error:'Expedition not found'});res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'public,max-age=60','x-content-type-options':'nosniff','content-security-policy':"default-src 'self'; style-src 'self'; img-src 'self'; script-src 'self'"});return res.end(card);}
+
     if(p==='/api/stats')return j(res,200,getStats());
     if(p==='/api/autonomy/status')return j(res,200,autonomy.status());
     if(p==='/api/os/status')return j(res,200,realmOS.public());
@@ -173,7 +194,7 @@ export const server=http.createServer(async(req,res)=>{
     if(p==='/api/leaderboard')return j(res,200,{contributors:db.prepare('SELECT handle, SUM(amount) points, COUNT(*) approvedContributions FROM points GROUP BY lower(email) ORDER BY points DESC, approvedContributions DESC LIMIT 20').all()});
     if(p==='/api/agent.json')return j(res,200,{name:'SeekMesh',description:'Community-curated discovery graph for humans and agents',api:{search:`${SITE_URL}/api/resources?q=`,categories:`${SITE_URL}/api/categories`,autonomy:`${SITE_URL}/api/autonomy/status`,version:'0.4.0'},note:'Source listings are descriptive and are not independently verified live.'});
     if(p==='/robots.txt'){res.writeHead(200,{'content-type':'text/plain; charset=utf-8'});return res.end(`User-agent: *\nAllow: /\nSitemap: ${SITE_URL}/sitemap.xml\n`);}
-    if(p==='/sitemap.xml'){res.writeHead(200,{'content-type':'application/xml; charset=utf-8'});return res.end(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>${SITE_URL}/</loc></url><url><loc>${SITE_URL}/explore</loc></url><url><loc>${SITE_URL}/manifesto</loc></url><url><loc>${SITE_URL}/whitepaper</loc></url><url><loc>${SITE_URL}/start</loc></url><url><loc>${SITE_URL}/app</loc></url><url><loc>${SITE_URL}/missions</loc></url><url><loc>${SITE_URL}/guilds</loc></url><url><loc>${SITE_URL}/market</loc></url><url><loc>${SITE_URL}/build</loc></url><url><loc>${SITE_URL}/os</loc></url></urlset>`);}
+    if(p==='/sitemap.xml'){res.writeHead(200,{'content-type':'application/xml; charset=utf-8'});return res.end(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>${SITE_URL}/</loc></url><url><loc>${SITE_URL}/explore</loc></url><url><loc>${SITE_URL}/manifesto</loc></url><url><loc>${SITE_URL}/whitepaper</loc></url><url><loc>${SITE_URL}/start</loc></url><url><loc>${SITE_URL}/app</loc></url><url><loc>${SITE_URL}/missions</loc></url><url><loc>${SITE_URL}/guilds</loc></url><url><loc>${SITE_URL}/market</loc></url><url><loc>${SITE_URL}/build</loc></url><url><loc>${SITE_URL}/os</loc></url><url><loc>${SITE_URL}/migrate</loc></url><url><loc>${SITE_URL}/atlas</loc></url></urlset>`);}
     if(p==='/api/admin/submissions'){if(!authenticate(req))return j(res,401,{error:'Unauthorized'});return j(res,200,{submissions:db.prepare('SELECT * FROM submissions ORDER BY id DESC LIMIT 200').all()});}
     if(p==='/api/admin/privacy-requests'){if(!authenticate(req))return j(res,401,{error:'Unauthorized'});return j(res,200,{requests:db.prepare('SELECT * FROM privacy_requests ORDER BY id DESC LIMIT 200').all()});}
     if(p==='/api/admin/waitlist'){if(!authenticate(req))return j(res,401,{error:'Unauthorized'});return j(res,200,{waitlist:db.prepare('SELECT id,email,persona,code,referred_by,created_at FROM waitlist ORDER BY id DESC LIMIT 500').all()});}
