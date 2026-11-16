@@ -158,4 +158,25 @@ test('E2E: starts, live data, search, invite, review, reputation, security and p
    assert.equal((await request('/api/admin/mesh/sponsor-action','POST',{id:b.body.inquiryId,state:'paid',nextAction:'Fake paid order',owner:'Revenue Agent',evidence:'No verified payment exists'},auth)).status,422);
  });
  await t.test('Public machine-readable discovery and web page',async()=>{const agent=await request('/api/agent.json');assert.equal(agent.status,200);assert.match(agent.body.api.search,/api\/resources/);const page=await fetch(base+'/');assert.equal(page.status,200);const html=await page.text();assert.match(html,/SEEKMESH/);const css=await fetch(base+'/styles.css');assert.equal(css.status,200);const operator=await fetch(base+'/operator');assert.equal(operator.status,200);assert.match(await operator.text(),/Operator Console/);const opjs=await fetch(base+'/operator.js');assert.equal(opjs.status,200);const robots=await fetch(base+'/robots.txt');assert.equal(robots.status,200);});
+ await t.test('Wallet-native entry E2E: no password, signed EIP-4361 message, session and replay protection',async()=>{
+   const w=Wallet.createRandom();
+   const challenge=await request('/api/siwe/challenge','POST',{address:w.address,chainId:8453});
+   assert.equal(challenge.status,201);
+   assert.equal(challenge.body.standard,'EIP-4361');
+   assert.match(challenge.body.message,/wants you to sign in with your Ethereum account/);
+   const signed=await w.signMessage(challenge.body.message);
+   const wrong=await request('/api/siwe/verify','POST',{id:challenge.body.id,chainId:1,address:w.address,signature:signed});
+   assert.equal(wrong.status,422);
+   const signedIn=await request('/api/siwe/verify','POST',{id:challenge.body.id,chainId:8453,address:w.address,signature:signed});
+   assert.equal(signedIn.status,200);
+   assert.equal(signedIn.body.newMember,true);
+   assert.equal(signedIn.body.walletAuthenticated,true);
+   assert.equal(signedIn.body.transactionPerformed,false);
+   const me=await request('/api/mesh/me','GET',null,{authorization:'Bearer '+signedIn.body.token});
+   assert.equal(me.status,200);
+   assert.equal(me.body.member.walletAddress,w.address);
+   const replay=await request('/api/siwe/verify','POST',{id:challenge.body.id,chainId:8453,address:w.address,signature:signed});
+   assert.equal(replay.status,422);
+ });
+
 });
