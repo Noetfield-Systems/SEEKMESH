@@ -89,7 +89,7 @@ const paidProof=new PaidProofAPI(db,{baseURL:SITE_URL});
 const nativeMissions=new NativeMissions(db);
 const executor=new RealmExecutor(db,{os:realmOS,autonomy,atlas,migration,paidProof});
 realmOS.executor=executor;realmOS.paidProof=paidProof;realmOS.nativeMissions=nativeMissions;
-const mcp=new SeekmeshMCP({search:searchResources,atlas,realmOS,community,paidProof,missions:nativeMissions,baseURL:SITE_URL});
+const mcp=new SeekmeshMCP({db,search:searchResources,atlas,realmOS,community,paidProof,missions:nativeMissions,baseURL:SITE_URL});
 
 const categories = ['All','AI & Models','Agent Infrastructure','Protocols','Communities','Builders','Search & Data'];
 const quests = [
@@ -171,6 +171,7 @@ export const server=http.createServer(async(req,res)=>{
     if(/^\/api\/migrate\/\d+$/.test(p)){const detail=migration.detail(p.split('/').pop());return j(res,detail?200:404,detail||{error:'No publicly verified campaign.'});}
     if(p==='/api/atlas')return j(res,200,{agents:atlas.list({kind:clean(u.searchParams.get('kind'),16),q:clean(u.searchParams.get('q'),90)}),stats:atlas.stats()});
     if(p==='/api/native/x402/status')return j(res,200,await paidProof.readiness());
+    if(p==='/api/mcp/stats')return j(res,200,mcp.usage());
     if(p==='/api/native/campaigns')return j(res,200,{campaigns:nativeMissions.list(),status:await nativeMissions.verifiedStatus(),claims:'Only onchain-confirmed funding and payout events count.'});
     if(p==='/api/proof/preview'){const proof=paidProof.preview(u.searchParams.get('id'));return j(res,proof?200:404,proof||{error:'Source missing.'});}
     if(p==='/api/proof/premium')return paidProof.serve(req,res,u);

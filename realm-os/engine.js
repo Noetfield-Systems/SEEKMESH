@@ -95,6 +95,7 @@ export class RealmOS{
    verified_x402_payments:this.countOptional("SELECT COUNT(*) n FROM native_x402_receipts"),
    imported_campaigns:this.countOptional("SELECT COUNT(*) n FROM realm_imports WHERE state='verified'"),
    atlas_entries:this.countOptional("SELECT COUNT(*) n FROM atlas_agents"),
+   mcp_tool_calls_7d:this.countOptional("SELECT COALESCE(SUM(n),0) n FROM realm_mcp_tool_calls WHERE day>=date('now','-6 days')"),
    workers_online:a.connectedWorkers24h||0,
    physical_executors:a.activeExecutors||0,
    logical_shards:a.logicalWorkerShards||0,

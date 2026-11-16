@@ -241,6 +241,7 @@ test('E2E: starts, live data, search, invite, review, reputation, security and p
   const cross=await request('/mcp','POST',packet(6,'tools/list'),{...headers,'Mcp-Method':'tools/list','Origin':'https://untrusted-site.example'});
   assert.equal(cross.status,403);assert.equal(cross.body.error.message,'CrossOriginRequestBlocked');
   const get=await request('/mcp');assert.equal(get.status,405);
+  const statsMcp=await request('/api/mcp/stats');assert.equal(statsMcp.status,200);assert.ok(statsMcp.body.toolCalls>=2);assert.equal(statsMcp.body.uniqueAgentsMeasured,false);
   const machine=await request('/api/agent.json');assert.equal(machine.status,200);
   assert.match(machine.body.mcp.url,/\/mcp$/);
  });
