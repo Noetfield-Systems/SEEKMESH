@@ -1,5 +1,5 @@
 # SEEKMESH — Real Launch Operations v0.9
-**Release:** November 15, 2026. **Operator:** Noetfield Systems Inc.
+**Release:** November 15, 2026. **Venture:** independent SEEKMESH initiative. **Legal operator:** not independently evidenced; Noetfield is at most a technical developer/provider, not a presumed parent, manager or owner.
 **Product:** https://seekmesh-web-production.up.railway.app/
 **Repo:** https://github.com/Noetfield-Systems/SEEKMESH
 
